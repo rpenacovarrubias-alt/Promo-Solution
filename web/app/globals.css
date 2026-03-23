@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --navy:    #1e3a5f;
+  --gold:    #D4A03A;
+  --navy-light: #2d5690;
+  --gold-light: #e8aa38;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply font-sans text-gray-800 bg-white; }
+  h1 { @apply text-3xl font-semibold tracking-tight; }
+  h2 { @apply text-2xl font-semibold; }
+  h3 { @apply text-lg font-medium; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-navy-700 hover:bg-navy-800 text-white font-medium px-5 py-2.5
+           rounded-lg transition-colors duration-150 text-sm;
+  }
+  .btn-gold {
+    @apply bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-5 py-2.5
+           rounded-lg transition-colors duration-150 text-sm;
+  }
+  .btn-outline {
+    @apply border border-navy-700 text-navy-700 hover:bg-navy-50 font-medium
+           px-5 py-2.5 rounded-lg transition-colors duration-150 text-sm;
+  }
+  .card {
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm
+           hover:shadow-md transition-shadow duration-200;
+  }
+  .tag {
+    @apply inline-block text-xs font-medium px-2.5 py-0.5 rounded-full
+           bg-navy-50 text-navy-700;
+  }
+  .badge-disponible {
+    @apply inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5
+           rounded-full bg-green-50 text-green-700;
+  }
+  .badge-agotado {
+    @apply inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5
+           rounded-full bg-red-50 text-red-600;
+  }
+}
