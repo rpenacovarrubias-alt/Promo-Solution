@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model Provider {
+  id        String    @id @default(cuid())
+  name      String
+  apiUrl    String
+  apiKey    String
+  logo      String?
+  isActive  Boolean   @default(true)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  providerId  String
+  provider    Provider         @relation(fields: [providerId], references: [id])
+  externalId  String
+  name        String
+  description String?
+  category    String?
+  basePrice   Decimal          @db.Decimal(10, 2)
+  isActive    Boolean          @default(true)
+  images      ProductImage[]
+  colors      ProductColor[]
+  variants    ProductVariant[]
+  quoteItems  QuoteItem[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([providerId, externalId])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  isPrimary Boolean @default(false)
+}
+
+model ProductColor {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  colorName String
+  hex       String?
+}
+
+model ProductVariant {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  material  String?
+  size      String?
+  minQty    Int     @default(1)
+}
+
+model Service {
+  id          String      @id @default(cuid())
+  name        String
+  type        ServiceType
+  unitPrice   Decimal     @db.Decimal(10, 2)
+  description String?
+  isActive    Boolean     @default(true)
+  quoteItems  QuoteItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+enum ServiceType {
+  ESTAMPADO
+  BORDADO
+  GRABADO
+  SUBLIMACION
+  OTRO
+}
+
+model Client {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  phone         String?
+  company       String?
+  markupPercent Decimal  @default(30) @db.Decimal(5, 2)
+  quotes        Quote[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Quote {
+  id        String      @id @default(cuid())
+  clientId  String
+  client    Client      @relation(fields: [clientId], references: [id])
+  status    QuoteStatus @default(DRAFT)
+  channels  Channel[]
+  subtotal  Decimal     @db.Decimal(10, 2)
+  iva       Decimal     @db.Decimal(10, 2)
+  total     Decimal     @db.Decimal(10, 2)
+  notes     String?
+  items     QuoteItem[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+}
+
+enum Channel {
+  EMAIL
+  WHATSAPP
+  TELEGRAM
+}
+
+model QuoteItem {
+  id        String   @id @default(cuid())
+  quoteId   String
+  quote     Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id])
+  quantity  Int      @default(1)
+  unitPrice Decimal  @db.Decimal(10, 2)
+  markup    Decimal  @db.Decimal(5, 2)
+  subtotal  Decimal  @db.Decimal(10, 2)
+}
