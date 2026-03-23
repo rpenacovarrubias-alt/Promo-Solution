@@ -1,0 +1,57 @@
+name: Deploy a EasyPanel
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package.json
+
+      - name: Instalar dependencias
+        run: cd web && npm ci
+
+      - name: Typecheck
+        run: cd web && npm run typecheck
+
+      - name: Lint
+        run: cd web && npm run lint
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build y push imagen Docker
+        env:
+          REGISTRY: ghcr.io
+          IMAGE: ${{ github.repository }}/web
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build \
+            --build-arg NEXT_PUBLIC_SITE_URL=https://promosolution.com.mx \
+            --build-arg NEXT_PUBLIC_CDN_URL=https://d23wkusc303ge3.cloudfront.net/XP45Ewd4 \
+            -f Dockerfile.web \
+            -t ghcr.io/${{ github.repository }}/web:latest \
+            -t ghcr.io/${{ github.repository }}/web:${{ github.sha }} \
+            .
+          docker push ghcr.io/${{ github.repository }}/web:latest
+          docker push ghcr.io/${{ github.repository }}/web:${{ github.sha }}
+
+      - name: Notificar a EasyPanel
+        run: |
+          curl -X POST "${{ secrets.EASYPANEL_WEBHOOK_URL }}" \
+            -H "Authorization: Bearer ${{ secrets.EASYPANEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"action": "deploy", "service": "promosolution-web"}'

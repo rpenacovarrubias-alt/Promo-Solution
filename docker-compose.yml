@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      NEXT_PUBLIC_CDN_URL: ${NEXT_PUBLIC_CDN_URL}
+      JULIO_API_KEY: ${JULIO_API_KEY}
+    restart: unless-stopped
+    networks:
+      - promosolution
+
+  # Solo para desarrollo local — en producción usa el PostgreSQL existente del servidor
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["local"]  # Solo activo con: docker compose --profile local up
+    environment:
+      POSTGRES_DB: promosolution
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: localdev
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - promosolution
+
+volumes:
+  pgdata:
+
+networks:
+  promosolution:
+    external: true  # Se conecta a la red Docker existente del servidor
