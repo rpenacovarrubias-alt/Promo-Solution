@@ -77,7 +77,7 @@ function NavGroup({ group }: { group: NavGroup }) {
       ? location.pathname === '/dashboard'
       : location.pathname.startsWith(item.to),
   )
-  const [open, setOpen] = useState(group.defaultOpen ?? !group.collapsible || isAnyActive)
+  const [open, setOpen] = useState(group.defaultOpen ?? (!group.collapsible || isAnyActive))
 
   return (
     <div className="mb-1">
