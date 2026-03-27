@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Save, CheckCircle2, XCircle } from 'lucide-react'
+import { Save, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const APP_VERSION = '1.0.0'
 
@@ -24,15 +25,34 @@ export default function Configuracion() {
     companyName: 'Promo Solution',
     logoUrl: '',
   })
+  const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [dbStatus] = useState<'connected' | 'disconnected' | 'unknown'>('unknown')
+  const [dbStatus, setDbStatus] = useState<'connected' | 'disconnected' | 'unknown'>('unknown')
+
+  useEffect(() => {
+    fetch('/api/config')
+      .then((r) => {
+        if (!r.ok) throw new Error()
+        setDbStatus('connected')
+        return r.json()
+      })
+      .then((data) => setConfig(data))
+      .catch(() => {
+        setDbStatus('disconnected')
+        toast.error('No se pudo cargar la configuración')
+      })
+      .finally(() => setIsLoading(false))
+  }, [])
 
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      // Persist to localStorage for now (would call a config API in production)
-      localStorage.setItem('promo_config', JSON.stringify(config))
-      await new Promise((r) => setTimeout(r, 400))
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      })
+      if (!res.ok) throw new Error()
       toast.success('Configuración guardada correctamente')
     } catch {
       toast.error('Error al guardar configuración')
@@ -62,76 +82,90 @@ export default function Configuracion() {
               <CardDescription>Parámetros de cálculo y datos de la empresa</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="ivaPercent">IVA (%)</Label>
-                  <Input
-                    id="ivaPercent"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={config.ivaPercent}
-                    onChange={(e) => setConfig((c) => ({ ...c, ivaPercent: e.target.value }))}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Porcentaje de IVA aplicado a cotizaciones
-                  </p>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <Skeleton key={i} className="h-10 w-full" />
+                  ))}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="defaultMarkup">Utilidad por defecto (%)</Label>
-                  <Input
-                    id="defaultMarkup"
-                    type="number"
-                    min="0"
-                    max="1000"
-                    step="0.01"
-                    value={config.defaultMarkup}
-                    onChange={(e) => setConfig((c) => ({ ...c, defaultMarkup: e.target.value }))}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Porcentaje de utilidad aplicado a nuevos clientes
-                  </p>
-                </div>
-              </div>
-              <Separator />
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="companyName">Nombre de la empresa</Label>
-                  <Input
-                    id="companyName"
-                    placeholder="Promo Solution"
-                    value={config.companyName}
-                    onChange={(e) => setConfig((c) => ({ ...c, companyName: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="logoUrl">URL del logo</Label>
-                  <Input
-                    id="logoUrl"
-                    type="url"
-                    placeholder="https://..."
-                    value={config.logoUrl}
-                    onChange={(e) => setConfig((c) => ({ ...c, logoUrl: e.target.value }))}
-                  />
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="ivaPercent">IVA (%)</Label>
+                      <Input
+                        id="ivaPercent"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={config.ivaPercent}
+                        onChange={(e) => setConfig((c) => ({ ...c, ivaPercent: e.target.value }))}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Porcentaje de IVA aplicado a cotizaciones
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="defaultMarkup">Utilidad por defecto (%)</Label>
+                      <Input
+                        id="defaultMarkup"
+                        type="number"
+                        min="0"
+                        max="1000"
+                        step="0.01"
+                        value={config.defaultMarkup}
+                        onChange={(e) =>
+                          setConfig((c) => ({ ...c, defaultMarkup: e.target.value }))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Porcentaje de utilidad aplicado a nuevos clientes
+                      </p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="companyName">Nombre de la empresa</Label>
+                      <Input
+                        id="companyName"
+                        placeholder="Promo Solution"
+                        value={config.companyName}
+                        onChange={(e) =>
+                          setConfig((c) => ({ ...c, companyName: e.target.value }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="logoUrl">URL del logo</Label>
+                      <Input
+                        id="logoUrl"
+                        type="url"
+                        placeholder="https://..."
+                        value={config.logoUrl}
+                        onChange={(e) => setConfig((c) => ({ ...c, logoUrl: e.target.value }))}
+                      />
+                    </div>
+                  </div>
 
-              <div className="flex justify-end">
-                <Button onClick={handleSave} disabled={isSaving}>
-                  {isSaving ? (
-                    <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                      Guardando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Guardar cambios
-                    </>
-                  )}
-                </Button>
-              </div>
+                  <div className="flex justify-end">
+                    <Button onClick={handleSave} disabled={isSaving}>
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Guardando...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Guardar cambios
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -162,7 +196,7 @@ export default function Configuracion() {
                         <span className="text-sm font-medium text-destructive">Desconectado</span>
                       </>
                     ) : (
-                      <span className="text-sm text-muted-foreground">Desconocido</span>
+                      <span className="text-sm text-muted-foreground">Verificando...</span>
                     )}
                   </div>
                 </div>

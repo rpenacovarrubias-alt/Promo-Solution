@@ -1,26 +1,38 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_URL")
+  url      = env("DATABASE_URL")
+  schemas  = ["promo_panel"]
 }
 
+// ─── Usuarios ────────────────────────────────────────────────────────────────
+
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String
-  passwordHash String
-  role         Role     @default(USER)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(SELLER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("promo_panel")
 }
 
 enum Role {
   ADMIN
-  USER
+  SALES_MANAGER
+  SELLER
+
+  @@schema("promo_panel")
 }
+
+// ─── Proveedores y Catálogo ───────────────────────────────────────────────────
 
 model Provider {
   id        String    @id @default(cuid())
@@ -32,6 +44,35 @@ model Provider {
   products  Product[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  @@schema("promo_panel")
+}
+
+model Category {
+  id              String    @id @default(cuid())
+  name            String    @unique
+  seoDescription  String?
+  seoKeywords     String?
+  utilityPercent  Decimal   @default(0) @db.Decimal(5, 2)
+  discountPercent Decimal   @default(0) @db.Decimal(5, 2)
+  products        Product[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@schema("promo_panel")
+}
+
+model Collection {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  name           String
+  seoDescription String?
+  seoKeywords    String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@schema("promo_panel")
 }
 
 model Product {
@@ -41,7 +82,8 @@ model Product {
   externalId  String
   name        String
   description String?
-  category    String?
+  categoryId  String?
+  category    Category?        @relation(fields: [categoryId], references: [id])
   basePrice   Decimal          @db.Decimal(10, 2)
   isActive    Boolean          @default(true)
   images      ProductImage[]
@@ -52,6 +94,7 @@ model Product {
   updatedAt   DateTime         @updatedAt
 
   @@unique([providerId, externalId])
+  @@schema("promo_panel")
 }
 
 model ProductImage {
@@ -60,6 +103,8 @@ model ProductImage {
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   url       String
   isPrimary Boolean @default(false)
+
+  @@schema("promo_panel")
 }
 
 model ProductColor {
@@ -68,6 +113,8 @@ model ProductColor {
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   colorName String
   hex       String?
+
+  @@schema("promo_panel")
 }
 
 model ProductVariant {
@@ -77,7 +124,11 @@ model ProductVariant {
   material  String?
   size      String?
   minQty    Int     @default(1)
+
+  @@schema("promo_panel")
 }
+
+// ─── Servicios ────────────────────────────────────────────────────────────────
 
 model Service {
   id          String      @id @default(cuid())
@@ -89,6 +140,8 @@ model Service {
   quoteItems  QuoteItem[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+
+  @@schema("promo_panel")
 }
 
 enum ServiceType {
@@ -97,7 +150,11 @@ enum ServiceType {
   GRABADO
   SUBLIMACION
   OTRO
+
+  @@schema("promo_panel")
 }
+
+// ─── Clientes ─────────────────────────────────────────────────────────────────
 
 model Client {
   id            String   @id @default(cuid())
@@ -109,7 +166,21 @@ model Client {
   quotes        Quote[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@schema("promo_panel")
 }
+
+// ─── Configuración ───────────────────────────────────────────────────────────
+
+model Config {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@schema("promo_panel")
+}
+
+// ─── Cotizaciones ─────────────────────────────────────────────────────────────
 
 model Quote {
   id        String      @id @default(cuid())
@@ -124,6 +195,8 @@ model Quote {
   items     QuoteItem[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+
+  @@schema("promo_panel")
 }
 
 enum QuoteStatus {
@@ -131,12 +204,16 @@ enum QuoteStatus {
   SENT
   ACCEPTED
   REJECTED
+
+  @@schema("promo_panel")
 }
 
 enum Channel {
   EMAIL
   WHATSAPP
   TELEGRAM
+
+  @@schema("promo_panel")
 }
 
 model QuoteItem {
@@ -151,4 +228,6 @@ model QuoteItem {
   unitPrice Decimal  @db.Decimal(10, 2)
   markup    Decimal  @db.Decimal(5, 2)
   subtotal  Decimal  @db.Decimal(10, 2)
+
+  @@schema("promo_panel")
 }

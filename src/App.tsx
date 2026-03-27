@@ -15,6 +15,10 @@ const Servicios = lazy(() => import('@/pages/Servicios'))
 const Clientes = lazy(() => import('@/pages/Clientes'))
 const Cotizaciones = lazy(() => import('@/pages/Cotizaciones'))
 const Configuracion = lazy(() => import('@/pages/Configuracion'))
+const NuevaCotizacion = lazy(() => import('@/pages/NuevaCotizacion'))
+const Colecciones = lazy(() => import('@/pages/Colecciones'))
+const Categorias = lazy(() => import('@/pages/Categorias'))
+const Usuarios = lazy(() => import('@/pages/Usuarios'))
 
 function PageLoader() {
   return (
@@ -43,6 +47,10 @@ export default function App() {
                 <Route path="/servicios" element={<Servicios />} />
                 <Route path="/clientes" element={<Clientes />} />
                 <Route path="/cotizaciones" element={<Cotizaciones />} />
+                <Route path="/cotizaciones/nueva" element={<NuevaCotizacion />} />
+                <Route path="/colecciones" element={<Colecciones />} />
+                <Route path="/categorias" element={<Categorias />} />
+                <Route path="/usuarios" element={<Usuarios />} />
                 <Route path="/configuracion" element={<Configuracion />} />
               </Route>
             </Route>

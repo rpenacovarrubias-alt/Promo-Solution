@@ -15,17 +15,17 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const { search, category, providerId, page = '1', limit = '50' } = req.query
+      const { search, categoryId, providerId, page = '1', limit = '50' } = req.query
 
       const where = {
         ...(search && {
           OR: [
             { name: { contains: search, mode: 'insensitive' } },
-            { category: { contains: search, mode: 'insensitive' } },
             { description: { contains: search, mode: 'insensitive' } },
+            { category: { name: { contains: search, mode: 'insensitive' } } },
           ],
         }),
-        ...(category && { category }),
+        ...(categoryId && { categoryId }),
         ...(providerId && { providerId }),
       }
 
@@ -33,6 +33,7 @@ export default async function handler(req, res) {
         where,
         include: {
           provider: { select: { id: true, name: true } },
+          category: { select: { id: true, name: true } },
           images: true,
           colors: true,
           variants: true,

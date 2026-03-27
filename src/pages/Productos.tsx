@@ -52,7 +52,7 @@ interface Product {
   id: string
   name: string
   description?: string
-  category?: string
+  category?: { id: string; name: string }
   basePrice: string
   isActive: boolean
   provider: { id: string; name: string }
@@ -94,14 +94,16 @@ export default function Productos() {
     fetchData()
   }, [])
 
-  const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean))) as string[]
+  const categories = Array.from(
+    new Map(products.filter((p) => p.category).map((p) => [p.category!.id, p.category!])).values()
+  )
 
   const filtered = products.filter((p) => {
     const matchSearch =
       !search ||
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.category?.toLowerCase().includes(search.toLowerCase())
-    const matchCategory = filterCategory === 'all' || p.category === filterCategory
+      p.category?.name.toLowerCase().includes(search.toLowerCase())
+    const matchCategory = filterCategory === 'all' || p.category?.id === filterCategory
     const matchProvider = filterProvider === 'all' || p.provider.id === filterProvider
     return matchSearch && matchCategory && matchProvider
   })
@@ -136,8 +138,8 @@ export default function Productos() {
           <SelectContent>
             <SelectItem value="all">Todas las categorías</SelectItem>
             {categories.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
+              <SelectItem key={c.id} value={c.id}>
+                {c.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -214,7 +216,7 @@ export default function Productos() {
                         <TableCell>
                           <Badge variant="outline">{p.provider.name}</Badge>
                         </TableCell>
-                        <TableCell className="text-muted-foreground">{p.category ?? '—'}</TableCell>
+                        <TableCell className="text-muted-foreground">{p.category?.name ?? '—'}</TableCell>
                         <TableCell>{formatCurrency(parseFloat(p.basePrice))}</TableCell>
                         <TableCell>{p.colors.length}</TableCell>
                         <TableCell>
@@ -292,7 +294,7 @@ export default function Productos() {
                 </div>
                 <div>
                   <span className="font-medium">Categoría:</span>{' '}
-                  {selectedProduct.category ?? '—'}
+                  {selectedProduct.category?.name ?? '—'}
                 </div>
                 <div>
                   <span className="font-medium">Proveedor:</span>{' '}

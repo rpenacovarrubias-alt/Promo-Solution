@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const { clientId, channels, subtotal, iva, total, notes, items } = req.body
+      const { clientId, channels, subtotal, iva, total, notes, status, items } = req.body
       if (!clientId || subtotal === undefined || iva === undefined || total === undefined) {
         return res.status(400).json({ error: 'clientId, subtotal, iva, total are required' })
       }
@@ -50,6 +50,7 @@ export default async function handler(req, res) {
           iva: parseFloat(iva),
           total: parseFloat(total),
           notes: notes || null,
+          ...(status && { status }),
           items: items
             ? {
                 create: items.map((item) => ({

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Eye, Send, Loader2 } from 'lucide-react'
+import { Eye, Send, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -60,6 +61,7 @@ const channelConfig: Record<Channel, { label: string; className: string }> = {
 }
 
 export default function Cotizaciones() {
+  const navigate = useNavigate()
   const [quotes, setQuotes] = useState<Quote[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null)
@@ -100,9 +102,15 @@ export default function Cotizaciones() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Cotizaciones</h1>
-        <p className="text-muted-foreground">Historial de cotizaciones enviadas</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Cotizaciones</h1>
+          <p className="text-muted-foreground">Historial de cotizaciones enviadas</p>
+        </div>
+        <Button onClick={() => navigate('/cotizaciones/nueva')}>
+          <Plus className="mr-2 h-4 w-4" />
+          Nueva cotización
+        </Button>
       </div>
 
       <Card>
