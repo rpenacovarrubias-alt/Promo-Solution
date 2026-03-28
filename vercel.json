@@ -2,10 +2,8 @@
   "buildCommand": "npx prisma generate && npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    {
-      "source": "/((?!api/).*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/:resource/:id", "destination": "/api/:resource?id=:id" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
