@@ -1,90 +1,49 @@
-import { query } from '@/lib/db'
+import { getProducts, getCategories } from '@/lib/api'
 import { ProductoCard } from '@/components/product/ProductoCard'
 import Link from 'next/link'
-import type { Producto } from '@/lib/productos'
 import type { Metadata } from 'next'
 
 interface Props {
-  searchParams: { q?: string; categoria?: string; proveedor?: string; page?: string; destacado?: string }
+  searchParams: {
+    q?:        string
+    categoryId?: string
+    featured?: string
+    page?:     string
+  }
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { q, categoria } = searchParams
-  const title = categoria ? `${categoria} — Catálogo` : q ? `"${q}" — Búsqueda` : 'Catálogo completo'
+  const { q, categoryId } = searchParams
+  const title = categoryId ? `Categoría — Catálogo` : q ? `"${q}" — Búsqueda` : 'Catálogo completo'
   return { title }
-}
-
-async function getProductos(params: Props['searchParams']): Promise<{ productos: Producto[]; total: number }> {
-  const PER_PAGE = 24
-  const page     = Math.max(1, parseInt(params.page ?? '1'))
-  const offset   = (page - 1) * PER_PAGE
-
-  const conds: string[]  = ['p.visible_web = TRUE', 'p.disponible = TRUE']
-  const vals:  unknown[] = []
-
-  if (params.q) {
-    vals.push(params.q)
-    conds.push(`(p.nombre ILIKE '%'||$${vals.length}||'%' OR p.codigo_proveedor ILIKE '%'||$${vals.length}||'%')`)
-  }
-  if (params.categoria) {
-    vals.push(params.categoria)
-    conds.push(`p.categoria_nombre ILIKE $${vals.length}`)
-  }
-  if (params.proveedor) {
-    vals.push(params.proveedor)
-    conds.push(`pr.codigo = $${vals.length}`)
-  }
-  if (params.destacado === 'true') conds.push(`p.destacado = TRUE`)
-
-  const where = conds.join(' AND ')
-  vals.push(PER_PAGE); vals.push(offset)
-
-  const [productos, counts] = await Promise.all([
-    query<Producto>(`
-      SELECT p.id, p.codigo_proveedor, p.codigo_prm, p.nombre, p.descripcion,
-             p.categoria_nombre, p.precio_venta, p.moneda, p.colores,
-             p.tecnica_impresion, p.medidas, p.cantidad_minima, p.tiempo_entrega,
-             p.imagen_principal, p.imagenes, p.disponible, p.stock, p.destacado, p.tags,
-             pr.nombre AS proveedor_nombre, pr.codigo AS proveedor_codigo
-      FROM productos p JOIN proveedores pr ON pr.id = p.proveedor_id
-      WHERE ${where}
-      ORDER BY p.destacado DESC, p.nombre ASC
-      LIMIT $${vals.length - 1} OFFSET $${vals.length}
-    `, vals),
-    query<{ total: string }>(`
-      SELECT COUNT(*) AS total FROM productos p
-      JOIN proveedores pr ON pr.id = p.proveedor_id WHERE ${where}
-    `, vals.slice(0, -2)),
-  ])
-
-  return { productos, total: parseInt(counts[0]?.total ?? '0') }
-}
-
-async function getCategorias(): Promise<string[]> {
-  const rows = await query<{ nombre: string }>(
-    `SELECT DISTINCT categoria_nombre AS nombre FROM productos
-     WHERE visible_web = TRUE AND disponible = TRUE AND categoria_nombre IS NOT NULL
-     ORDER BY nombre`
-  )
-  return rows.map(r => r.nombre)
 }
 
 export default async function CatalogoPage({ searchParams }: Props) {
   const PER_PAGE = 24
   const page     = Math.max(1, parseInt(searchParams.page ?? '1'))
 
-  const [{ productos, total }, categorias] = await Promise.all([
-    getProductos(searchParams),
-    getCategorias(),
+  const [productsRes, categories] = await Promise.all([
+    getProducts({
+      search:     searchParams.q,
+      categoryId: searchParams.categoryId,
+      featured:   searchParams.featured === 'true',
+      page,
+      limit:      PER_PAGE,
+    }),
+    getCategories(),
   ])
 
-  const totalPages = Math.ceil(total / PER_PAGE)
-  const hasFilters = !!(searchParams.q || searchParams.categoria || searchParams.proveedor)
+  const { data: productos, pagination } = productsRes
+  const { total, totalPages }           = pagination
+  const hasFilters = !!(searchParams.q || searchParams.categoryId || searchParams.featured)
 
   const buildUrl = (p: number) => {
     const s = new URLSearchParams({ ...searchParams, page: String(p) } as Record<string, string>)
     return `/catalogo?${s}`
   }
+
+  // Nombre de la categoría activa
+  const activeCategory = categories.find(c => c.id === searchParams.categoryId)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -98,23 +57,24 @@ export default async function CatalogoPage({ searchParams }: Props) {
               <li>
                 <Link href="/catalogo"
                   className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    !searchParams.categoria
+                    !searchParams.categoryId
                       ? 'bg-navy-700 text-white font-medium'
                       : 'text-gray-700 hover:bg-navy-50 hover:text-navy-700'
                   }`}>
-                  Todos ({total})
+                  Todos ({total.toLocaleString()})
                 </Link>
               </li>
-              {categorias.map(cat => (
-                <li key={cat}>
+              {categories.map(cat => (
+                <li key={cat.id}>
                   <Link
-                    href={`/catalogo?categoria=${encodeURIComponent(cat)}` + (searchParams.q ? `&q=${searchParams.q}` : '')}
+                    href={`/catalogo?categoryId=${cat.id}` + (searchParams.q ? `&q=${searchParams.q}` : '')}
                     className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      searchParams.categoria === cat
+                      searchParams.categoryId === cat.id
                         ? 'bg-navy-700 text-white font-medium'
                         : 'text-gray-700 hover:bg-navy-50 hover:text-navy-700'
                     }`}>
-                    {cat}
+                    {cat.name}
+                    <span className="ml-1 text-xs opacity-60">({cat.productCount})</span>
                   </Link>
                 </li>
               ))}
@@ -128,7 +88,8 @@ export default async function CatalogoPage({ searchParams }: Props) {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h1 className="text-xl font-semibold text-gray-900">
-                {searchParams.categoria ?? (searchParams.q ? `"${searchParams.q}"` : 'Catálogo completo')}
+                {activeCategory?.name
+                  ?? (searchParams.q ? `"${searchParams.q}"` : 'Catálogo completo')}
               </h1>
               <p className="text-sm text-gray-500">{total.toLocaleString()} productos</p>
             </div>

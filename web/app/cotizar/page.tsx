@@ -2,20 +2,24 @@
 
 import { useState } from 'react'
 import { useCarrito } from '@/components/quote/CarritoContext'
-import { getImageUrl, formatPrecio } from '@/lib/productos'
+import { formatPrecio } from '@/lib/api'
 import Image from 'next/image'
 import Link from 'next/link'
 
 interface FormData {
-  nombre: string; empresa: string; email: string; telefono: string; notas: string
+  nombre:   string
+  empresa:  string
+  email:    string
+  telefono: string
+  notas:    string
 }
 
 export default function CotizarPage() {
   const { items, remove, update, subtotal, clear } = useCarrito()
-  const [form, setForm] = useState<FormData>({ nombre:'', empresa:'', email:'', telefono:'', notas:'' })
-  const [sending, setSending]   = useState(false)
-  const [success, setSuccess]   = useState<string | null>(null)
-  const [error, setError]       = useState<string | null>(null)
+  const [form, setForm]       = useState<FormData>({ nombre:'', empresa:'', email:'', telefono:'', notas:'' })
+  const [sending, setSending] = useState(false)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [error, setError]     = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,16 +31,17 @@ export default function CotizarPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          cliente_nombre:  form.nombre,
-          cliente_email:   form.email || undefined,
-          cliente_empresa: form.empresa || undefined,
-          canal:           'web',
-          notas:           form.notas || undefined,
+          customer: {
+            name:    form.nombre,
+            phone:   form.telefono || `web_${Date.now()}`,
+            email:   form.email    || undefined,
+            company: form.empresa  || undefined,
+          },
+          channel: 'CHAT',
+          notes:   form.notas || undefined,
           items: items.map(i => ({
-            producto_id: i.producto_id,
-            cantidad:    i.cantidad,
-            color:       i.color,
-            tecnica:     i.tecnica,
+            productId: i.producto_id,
+            quantity:  i.cantidad,
           })),
         }),
       })
@@ -85,15 +90,14 @@ export default function CotizarPage() {
               <div key={item.producto_id} className="card p-4 flex gap-4">
                 <div className="relative w-20 h-20 flex-shrink-0 bg-gray-50 rounded-lg overflow-hidden">
                   <Image
-                    src={getImageUrl(item.codigo_proveedor, item.imagen_principal)}
+                    src={item.imageUrl ?? '/placeholder-product.png'}
                     alt={item.nombre}
                     fill className="object-contain p-1"
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-400 font-mono">{item.codigo_proveedor}</p>
                   <p className="font-medium text-gray-800 text-sm line-clamp-2">{item.nombre}</p>
-                  <p className="text-navy-700 font-semibold text-sm mt-1">{formatPrecio(item.precio_venta)}</p>
+                  <p className="text-navy-700 font-semibold text-sm mt-1">{formatPrecio(item.finalPrice)}</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <button onClick={() => remove(item.producto_id)}
@@ -112,7 +116,7 @@ export default function CotizarPage() {
                       className="px-2 py-1 hover:bg-gray-50">+</button>
                   </div>
                   <p className="text-sm font-semibold text-gray-800">
-                    {formatPrecio(item.precio_venta * item.cantidad)}
+                    {formatPrecio(item.finalPrice * item.cantidad)}
                   </p>
                 </div>
               </div>
@@ -127,7 +131,7 @@ export default function CotizarPage() {
                 {items.map(i => (
                   <div key={i.producto_id} className="flex justify-between gap-2">
                     <span className="text-gray-600 truncate">{i.nombre} ×{i.cantidad}</span>
-                    <span className="font-medium flex-shrink-0">{formatPrecio(i.precio_venta * i.cantidad)}</span>
+                    <span className="font-medium flex-shrink-0">{formatPrecio(i.finalPrice * i.cantidad)}</span>
                   </div>
                 ))}
                 <div className="border-t border-gray-100 pt-2 mt-2 flex justify-between font-semibold text-base">
@@ -141,10 +145,10 @@ export default function CotizarPage() {
             <form onSubmit={handleSubmit} className="card p-5 space-y-4">
               <h2 className="font-semibold text-gray-800">Tus datos</h2>
               {[
-                { name: 'nombre',   label: 'Nombre *',   required: true,  type: 'text' },
-                { name: 'empresa',  label: 'Empresa',    required: false, type: 'text' },
+                { name: 'nombre',   label: 'Nombre *',   required: true,  type: 'text'  },
+                { name: 'empresa',  label: 'Empresa',    required: false, type: 'text'  },
                 { name: 'email',    label: 'Email',      required: false, type: 'email' },
-                { name: 'telefono', label: 'Teléfono',   required: false, type: 'tel' },
+                { name: 'telefono', label: 'Teléfono',   required: false, type: 'tel'   },
               ].map(f => (
                 <div key={f.name}>
                   <label className="block text-xs font-medium text-gray-600 mb-1">{f.label}</label>

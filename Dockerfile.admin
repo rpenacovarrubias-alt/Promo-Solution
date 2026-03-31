@@ -1,0 +1,53 @@
+# ============================================================
+# Dockerfile — promosolution-admin
+# Panel de administración React/Vite + API Express
+#
+# Build:  docker build -f Dockerfile.admin -t promosolution-admin .
+# Run:    docker run -p 4000:4000 --env-file .env promosolution-admin
+# ============================================================
+
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat
+
+# ── 1. Instalar dependencias ──────────────────────────────────────────────────
+FROM base AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# ── 2. Build del frontend (Vite) ─────────────────────────────────────────────
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Generar Prisma Client antes del build
+RUN npx prisma generate
+RUN npm run build
+
+# ── 3. Imagen de producción (solo lo necesario) ───────────────────────────────
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Crear usuario sin privilegios
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser  --system --uid 1001 appuser
+
+# Copiar artefactos del build
+COPY --from=builder /app/dist          ./dist
+COPY --from=builder /app/node_modules  ./node_modules
+COPY --from=builder /app/prisma        ./prisma
+COPY --from=builder /app/routes        ./routes
+COPY --from=builder /app/lib           ./lib
+COPY --from=builder /app/server.js     ./server.js
+COPY --from=builder /app/package.json  ./package.json
+
+USER appuser
+
+EXPOSE 4000
+ENV PORT=4000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]

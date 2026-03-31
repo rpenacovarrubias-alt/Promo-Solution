@@ -1,6 +1,24 @@
 version: '3.8'
 
 services:
+
+  # ── Panel de administración (React/Vite + Express API) ──────────────────────
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile.admin
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL}
+      PUBLIC_API_KEY: ${PUBLIC_API_KEY}
+    restart: unless-stopped
+    networks:
+      - promosolution
+
+  # ── Sitio público (Next.js) ──────────────────────────────────────────────────
   web:
     build:
       context: .
@@ -8,10 +26,13 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://promosolution.com.mx}
       NEXT_PUBLIC_CDN_URL: ${NEXT_PUBLIC_CDN_URL}
-      JULIO_API_KEY: ${JULIO_API_KEY}
+      NEXT_PUBLIC_ADMIN_API: ${NEXT_PUBLIC_ADMIN_API:-https://admin.promosolution.com.mx}
+      # Para SSR: comunicación interna entre contenedores Docker (sin pasar por internet)
+      ADMIN_API_URL: http://admin:4000
+      # Clave para que el proxy Next.js llame a la API pública (no expuesta al cliente)
+      PUBLIC_API_KEY: ${PUBLIC_API_KEY}
     restart: unless-stopped
     networks:
       - promosolution

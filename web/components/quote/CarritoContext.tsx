@@ -3,14 +3,13 @@
 import { createContext, useContext, useReducer, useCallback } from 'react'
 
 export interface CartItem {
-  producto_id:      number
-  codigo_proveedor: string
-  nombre:           string
-  precio_venta:     number
-  imagen_principal: string | null
-  cantidad:         number
-  color?:           string
-  tecnica?:         string
+  producto_id: string   // cuid del producto en Prisma
+  nombre:      string
+  finalPrice:  number   // precio con utilidad ya incluida
+  imageUrl:    string | null
+  cantidad:    number
+  color?:      string
+  tecnica?:    string
 }
 
 interface CartState {
@@ -19,8 +18,8 @@ interface CartState {
 
 type CartAction =
   | { type: 'ADD';    item: CartItem }
-  | { type: 'REMOVE'; producto_id: number }
-  | { type: 'UPDATE'; producto_id: number; cantidad: number }
+  | { type: 'REMOVE'; producto_id: string }
+  | { type: 'UPDATE'; producto_id: string; cantidad: number }
   | { type: 'CLEAR' }
 
 function reducer(state: CartState, action: CartAction): CartState {
@@ -58,8 +57,8 @@ interface CartContext {
   total:    number
   subtotal: number
   add:      (item: CartItem) => void
-  remove:   (producto_id: number) => void
-  update:   (producto_id: number, cantidad: number) => void
+  remove:   (producto_id: string) => void
+  update:   (producto_id: string, cantidad: number) => void
   clear:    () => void
 }
 
@@ -69,12 +68,12 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, { items: [] })
 
   const add    = useCallback((item: CartItem) => dispatch({ type: 'ADD', item }), [])
-  const remove = useCallback((id: number)     => dispatch({ type: 'REMOVE', producto_id: id }), [])
-  const update = useCallback((id: number, cantidad: number) =>
+  const remove = useCallback((id: string) => dispatch({ type: 'REMOVE', producto_id: id }), [])
+  const update = useCallback((id: string, cantidad: number) =>
     dispatch({ type: 'UPDATE', producto_id: id, cantidad }), [])
   const clear  = useCallback(() => dispatch({ type: 'CLEAR' }), [])
 
-  const subtotal = state.items.reduce((s, i) => s + i.precio_venta * i.cantidad, 0)
+  const subtotal = state.items.reduce((s, i) => s + i.finalPrice * i.cantidad, 0)
 
   return (
     <Ctx.Provider value={{

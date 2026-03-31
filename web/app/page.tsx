@@ -1,51 +1,26 @@
-import { query } from '@/lib/db'
+import { getProducts } from '@/lib/api'
 import { ProductoCard } from '@/components/product/ProductoCard'
 import Link from 'next/link'
-import type { Producto } from '@/lib/productos'
-
-async function getDestacados(): Promise<Producto[]> {
-  return query<Producto>(
-    `SELECT p.id, p.codigo_proveedor, p.codigo_prm, p.nombre, p.descripcion,
-            p.categoria_nombre, p.precio_venta, p.moneda, p.colores,
-            p.tecnica_impresion, p.medidas, p.cantidad_minima, p.tiempo_entrega,
-            p.imagen_principal, p.imagenes, p.disponible, p.stock, p.destacado, p.tags,
-            pr.nombre AS proveedor_nombre, pr.codigo AS proveedor_codigo
-     FROM productos p
-     JOIN proveedores pr ON pr.id = p.proveedor_id
-     WHERE p.visible_web = TRUE AND p.disponible = TRUE AND p.destacado = TRUE
-     ORDER BY RANDOM()
-     LIMIT 8`
-  )
-}
-
-async function getRecientes(): Promise<Producto[]> {
-  return query<Producto>(
-    `SELECT p.id, p.codigo_proveedor, p.codigo_prm, p.nombre, p.descripcion,
-            p.categoria_nombre, p.precio_venta, p.moneda, p.colores,
-            p.tecnica_impresion, p.medidas, p.cantidad_minima, p.tiempo_entrega,
-            p.imagen_principal, p.imagenes, p.disponible, p.stock, p.destacado, p.tags,
-            pr.nombre AS proveedor_nombre, pr.codigo AS proveedor_codigo
-     FROM productos p
-     JOIN proveedores pr ON pr.id = p.proveedor_id
-     WHERE p.visible_web = TRUE AND p.disponible = TRUE
-     ORDER BY p.created_at DESC
-     LIMIT 8`
-  )
-}
 
 const CATEGORIAS_HERO = [
-  { nombre: 'Bebidas',      slug: 'Bebidas',      emoji: '🫗' },
-  { nombre: 'Tecnología',   slug: 'Tecnología',   emoji: '💻' },
-  { nombre: 'Uniformes',    slug: 'Uniformes',    emoji: '👕' },
-  { nombre: 'Ecológicos',   slug: 'Ecológicos',   emoji: '🌿' },
-  { nombre: 'Libretas',     slug: 'Libretas',     emoji: '📒' },
-  { nombre: 'Llaveros',     slug: 'Llaveros',     emoji: '🔑' },
-  { nombre: 'Deportes',     slug: 'Deportes y tiempo libre', emoji: '⚽' },
-  { nombre: 'Oficina',      slug: 'Oficina y Escritorio',    emoji: '🖊️' },
+  { nombre: 'Bebidas',    emoji: '🫗' },
+  { nombre: 'Tecnología', emoji: '💻' },
+  { nombre: 'Uniformes',  emoji: '👕' },
+  { nombre: 'Ecológicos', emoji: '🌿' },
+  { nombre: 'Libretas',   emoji: '📒' },
+  { nombre: 'Llaveros',   emoji: '🔑' },
+  { nombre: 'Deportes',   emoji: '⚽' },
+  { nombre: 'Oficina',    emoji: '🖊️' },
 ]
 
 export default async function HomePage() {
-  const [destacados, recientes] = await Promise.all([getDestacados(), getRecientes()])
+  const [destacadosRes, recientesRes] = await Promise.all([
+    getProducts({ featured: true,  limit: 8 }),
+    getProducts({ limit: 8 }),
+  ])
+
+  const destacados = destacadosRes.data
+  const recientes  = recientesRes.data
 
   return (
     <>
@@ -82,8 +57,8 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
           {CATEGORIAS_HERO.map(cat => (
-            <Link key={cat.slug}
-              href={`/catalogo?categoria=${encodeURIComponent(cat.slug)}`}
+            <Link key={cat.nombre}
+              href={`/catalogo?q=${encodeURIComponent(cat.nombre)}`}
               className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-gray-100
                          hover:border-navy-200 hover:bg-navy-50 transition-all text-center group">
               <span className="text-2xl">{cat.emoji}</span>
@@ -103,7 +78,7 @@ export default async function HomePage() {
               <h2 className="text-xl font-semibold text-gray-900">Lo más popular</h2>
               <p className="text-sm text-gray-500 mt-0.5">Los favoritos de nuestros clientes</p>
             </div>
-            <Link href="/catalogo?destacado=true"
+            <Link href="/catalogo?featured=true"
               className="text-sm text-navy-700 font-medium hover:text-navy-800">
               Ver todos →
             </Link>

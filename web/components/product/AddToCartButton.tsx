@@ -2,23 +2,24 @@
 
 import { useState } from 'react'
 import { useCarrito } from '@/components/quote/CarritoContext'
-import type { ProductoDetalle } from '@/lib/productos'
+import { getProductImageUrl, getMinQty } from '@/lib/api'
+import type { ApiProduct } from '@/lib/api'
 
-interface Props { producto: ProductoDetalle }
+interface Props { producto: ApiProduct }
 
 export function AddToCartButton({ producto }: Props) {
   const { add, items } = useCarrito()
-  const [cantidad, setCantidad] = useState(producto.cantidad_minima ?? 1)
+  const minQty         = getMinQty(producto)
+  const [cantidad, setCantidad] = useState(minQty)
   const [added, setAdded]       = useState(false)
   const inCart = items.some(i => i.producto_id === producto.id)
 
   const handleAdd = () => {
     add({
-      producto_id:      producto.id,
-      codigo_proveedor: producto.codigo_proveedor,
-      nombre:           producto.nombre,
-      precio_venta:     producto.precio_venta,
-      imagen_principal: producto.imagen_principal,
+      producto_id: producto.id,
+      nombre:      producto.name,
+      finalPrice:  producto.finalPrice,
+      imageUrl:    getProductImageUrl(producto),
       cantidad,
     })
     setAdded(true)
@@ -31,15 +32,15 @@ export function AddToCartButton({ producto }: Props) {
         <label className="text-sm text-gray-600 w-20">Cantidad</label>
         <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
           <button
-            onClick={() => setCantidad(c => Math.max(producto.cantidad_minima ?? 1, c - 1))}
+            onClick={() => setCantidad(c => Math.max(minQty, c - 1))}
             className="px-3 py-2 text-gray-600 hover:bg-gray-50 text-lg leading-none">
             −
           </button>
           <input
             type="number"
             value={cantidad}
-            min={producto.cantidad_minima ?? 1}
-            onChange={e => setCantidad(Math.max(producto.cantidad_minima ?? 1, parseInt(e.target.value) || 1))}
+            min={minQty}
+            onChange={e => setCantidad(Math.max(minQty, parseInt(e.target.value) || 1))}
             className="w-16 text-center text-sm py-2 border-x border-gray-200 focus:outline-none"
           />
           <button
@@ -52,7 +53,7 @@ export function AddToCartButton({ producto }: Props) {
 
       <button
         onClick={handleAdd}
-        disabled={!producto.disponible}
+        disabled={!producto.isActive}
         className={`w-full py-3 rounded-xl font-semibold transition-all duration-150 ${
           added
             ? 'bg-green-600 text-white'

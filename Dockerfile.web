@@ -1,49 +1,54 @@
 # =============================================================
-# Dockerfile — promosolution-web
-# Build: docker build -f Dockerfile.web -t promosolution-web .
+# Dockerfile — promosolution-web  (Next.js 14 App Router)
+#
+# Build:  docker build -f Dockerfile.web -t promosolution-web \
+#           --build-arg NEXT_PUBLIC_ADMIN_API=https://admin.promosolution.com.mx .
+# Run:    docker run -p 3000:3000 --env-file .env promosolution-web
 # =============================================================
 
 FROM node:20-alpine AS base
-
-# ---- Dependencias ----
-FROM base AS deps
 RUN apk add --no-cache libc6-compat
-WORKDIR /app
-COPY web/package.json ./
-RUN npm install --frozen-lockfile
 
-# ---- Build ----
+# ── 1. Dependencias ───────────────────────────────────────────────────────────
+FROM base AS deps
+WORKDIR /app
+COPY web/package.json web/package-lock.json* ./
+RUN npm ci
+
+# ── 2. Build ──────────────────────────────────────────────────────────────────
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY web/ .
 
-# Variables necesarias durante el build
+# Variables NEXT_PUBLIC_* deben estar disponibles en tiempo de build
 ARG NEXT_PUBLIC_SITE_URL=https://promosolution.com.mx
-ARG NEXT_PUBLIC_CDN_URL=https://d23wkusc303ge3.cloudfront.net/XP45Ewd4
+ARG NEXT_PUBLIC_ADMIN_API=https://admin.promosolution.com.mx
 ARG NEXT_PUBLIC_SITE_NAME=PROMO SOLUTIONS
 
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
-ENV NEXT_PUBLIC_CDN_URL=$NEXT_PUBLIC_CDN_URL
+ENV NEXT_PUBLIC_ADMIN_API=$NEXT_PUBLIC_ADMIN_API
 ENV NEXT_PUBLIC_SITE_NAME=$NEXT_PUBLIC_SITE_NAME
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
 
-# ---- Runner ----
+# ── 3. Runner ─────────────────────────────────────────────────────────────────
 FROM base AS runner
 WORKDIR /app
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser  --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
+
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"

@@ -35,15 +35,58 @@ enum Role {
 // ─── Proveedores y Catálogo ───────────────────────────────────────────────────
 
 model Provider {
-  id        String    @id @default(cuid())
-  name      String
-  apiUrl    String
-  apiKey    String
-  logo      String?
-  isActive  Boolean   @default(true)
-  products  Product[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String     @id @default(cuid())
+  name         String
+  slug         String     @unique
+  authType     AuthType   @default(BEARER)
+  apiUrl       String?
+  apiKey       String?    // Token Bearer pre-emitido (Innovation, 4Promotional)
+  apiUser      String?    // Email/usuario para login (Promo Option, Doble Vela)
+  apiPassword  String?    // Contraseña para login
+  accountId    String?    // ID de cuenta del cliente (Doble Vela: C010535, 4Promo: 22100)
+  logo         String?
+  isActive     Boolean    @default(true)
+  lastSync     DateTime?
+  syncStatus   SyncStatus @default(IDLE)
+  syncMessage  String?
+  totalProducts Int       @default(0)
+  products     Product[]
+  syncLogs     SyncLog[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@schema("promo_panel")
+}
+
+enum AuthType {
+  BEARER     // Token pre-emitido como Bearer (Innovation)
+  GRAPHQL    // Login via GraphQL mutation → JWT (Promo Option)
+  WEBSERVICE // Login → Web Service (Doble Vela, 4Promotional)
+  MANUAL     // Sin API, importación manual desde Excel (catálogo propio)
+
+  @@schema("promo_panel")
+}
+
+enum SyncStatus {
+  IDLE
+  SYNCING
+  SUCCESS
+  ERROR
+
+  @@schema("promo_panel")
+}
+
+model SyncLog {
+  id               String     @id @default(cuid())
+  providerId       String
+  provider         Provider   @relation(fields: [providerId], references: [id])
+  status           SyncStatus
+  message          String?
+  productsAdded    Int        @default(0)
+  productsUpdated  Int        @default(0)
+  productsTotal    Int        @default(0)
+  startedAt        DateTime   @default(now())
+  finishedAt       DateTime?
 
   @@schema("promo_panel")
 }
@@ -85,6 +128,7 @@ model Product {
   categoryId  String?
   category    Category?        @relation(fields: [categoryId], references: [id])
   basePrice   Decimal          @db.Decimal(10, 2)
+  stock       Int?
   isActive    Boolean          @default(true)
   images      ProductImage[]
   colors      ProductColor[]

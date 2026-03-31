@@ -2,14 +2,23 @@
   "buildCommand": "npx prisma generate && npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/api/:resource/:id", "destination": "/api/:resource?id=:id" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/api/public/:resource/:id", "destination": "/api/public/:resource?id=:id" },
+    { "source": "/api/:resource/:id",        "destination": "/api/:resource?id=:id" },
+    { "source": "/((?!api/).*)",             "destination": "/index.html" }
   ],
   "headers": [
     {
+      "source": "/api/public/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin",  "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, X-API-Key" }
+      ]
+    },
+    {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Origin",  "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
       ]
