@@ -2,6 +2,8 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import MainLayout from '@/components/layout/MainLayout'
 
@@ -19,6 +21,7 @@ const NuevaCotizacion = lazy(() => import('@/pages/NuevaCotizacion'))
 const Colecciones = lazy(() => import('@/pages/Colecciones'))
 const Categorias = lazy(() => import('@/pages/Categorias'))
 const Usuarios = lazy(() => import('@/pages/Usuarios'))
+const Paginas  = lazy(() => import('@/pages/Paginas'))
 
 function PageLoader() {
   return (
@@ -52,6 +55,8 @@ export default function App() {
                 <Route path="/categorias" element={<Categorias />} />
                 <Route path="/usuarios" element={<Usuarios />} />
                 <Route path="/configuracion" element={<Configuracion />} />
+                <Route path="/paginas"        element={<Paginas />} />
+                <Route path="/paginas/:slug"  element={<Paginas />} />
               </Route>
             </Route>
 
@@ -62,6 +67,8 @@ export default function App() {
         </Suspense>
       </BrowserRouter>
       <Toaster richColors position="top-right" />
+      <Analytics />
+      <SpeedInsights />
     </AuthProvider>
   )
 }
