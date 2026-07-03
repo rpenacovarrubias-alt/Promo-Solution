@@ -1,0 +1,19 @@
+{
+  "projectId": "0d0e980a-846a-415f-bd72-e4dab5f4a6f8",
+  "pkg": "promo-solution",
+  "globalName": "PromoSolution",
+  "shape": "package",
+  "srcDir": "src/components",
+  "cssEntry": "src/index.css",
+  "tsconfig": "./tsconfig.app.json",
+  "extraEntries": [
+    "./src/contexts/AuthContext.tsx",
+    "./.design-sync/preview-utils.ts"
+  ],
+  "provider": {
+    "component": "BrowserRouter",
+    "inner": {
+      "component": "AuthProvider"
+    }
+  }
+}
