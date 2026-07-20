@@ -15,7 +15,6 @@ function formatProduct(p) {
     basePrice: parseFloat(p.basePrice),
     finalPrice: calcFinalPrice(p.basePrice, p.category?.utilityPercent),
     isActive: p.isActive,
-    isFeatured: p.isFeatured ?? false,
     stock: p.stock ?? null,
     category: p.category ? { id: p.category.id, name: p.category.name } : null,
     provider: p.provider ? { id: p.provider.id, name: p.provider.name, slug: p.provider.slug } : null,
@@ -29,7 +28,7 @@ function formatProduct(p) {
 
 // GET /api/public/products
 router.get('/', async (req, res) => {
-  const { search, categoryId, providerId, featured, page = '1', limit = '20' } = req.query
+  const { search, categoryId, providerId, page = '1', limit = '20' } = req.query
   const pageNum  = Math.max(1, parseInt(page))
   const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
 
@@ -37,7 +36,6 @@ router.get('/', async (req, res) => {
     isActive: true,
     ...(categoryId && { categoryId }),
     ...(providerId && { providerId }),
-    ...(featured === 'true' && { isFeatured: true }),
     ...(search && {
       OR: [
         { name:        { contains: search, mode: 'insensitive' } },
@@ -57,7 +55,7 @@ router.get('/', async (req, res) => {
           colors:   { take: 5 },
           variants: { orderBy: { minQty: 'asc' }, take: 3 },
         },
-        orderBy: [{ isFeatured: 'desc' }, { name: 'asc' }],
+        orderBy: { name: 'asc' },
         skip: (pageNum - 1) * limitNum,
         take: limitNum,
       }),
