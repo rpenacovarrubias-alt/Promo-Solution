@@ -44,7 +44,7 @@ export function ProductoCard({ producto }: Props) {
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-contain p-3 group-hover:scale-105 transition-transform duration-300"
             onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-              e.currentTarget.src = '/placeholder-product.png'
+              e.currentTarget.src = '/placeholder-product.svg'
             }}
           />
           {producto.isFeatured && (

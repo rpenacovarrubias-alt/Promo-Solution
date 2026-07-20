@@ -1,0 +1,9 @@
+{
+  "namespace": "PromoSolution",
+  "source": "promo-solution@1.0.0",
+  "shape": "package",
+  "provider": "BrowserRouter",
+  "componentCount": 85,
+  "skippedStoryIds": [],
+  "runtimeFontPrefixes": []
+}

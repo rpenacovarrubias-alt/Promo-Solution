@@ -1,63 +1,68 @@
-# CLAUDE.md — Promo-Solution
-
-Panel de administración para empresa de productos promocionales.
+﻿# CLAUDE.md — Promo Solution
+> Este archivo es específico del proyecto PromoSolution.
+> Para contexto global del ecosistema: lee C:\Proyectos\CLAUDE.md
 
 ---
 
+## Proyecto
+Plataforma white-label de productos promocionales con agente IA de ventas.
+**Repos:**
+- `C:\Proyectos\PromoSolution\Promo-Solution\` (rpenacovarrubias-alt)
+- `C:\Proyectos\PromoSolution\my-promoprice\`
+**Sitio:** promosolution.com.mx
+
 ## Stack
+- PostgreSQL `promosolution-db` (EasyPanel puerto 5432)
+- Redis (caché de conversaciones)
+- Docker scraper: 82.180.173.228:5679
+- n8n: 19 workflows activos
 
-- **Frontend:** React 18 + TypeScript + Vite 5
-- **Estilos:** Tailwind CSS v3 + shadcn/ui (Radix UI)
-- **Routing:** React Router DOM v6 (rutas en español)
-- **Formularios:** React Hook Form + Zod
-- **Toasts:** Sonner (`import { toast } from 'sonner'` — NO useToast)
-- **Iconos:** Lucide React
-- **ORM:** Prisma + PostgreSQL
-- **API:** Vercel Serverless Functions en `/api/`
-- **Deploy:** Vercel
+## Agente "Julio" V11
+Canales: WhatsApp | Telegram | Instagram DM | Facebook Messenger
+- Consulta PostgreSQL con índice GIN
+- Genera links cotización pre-llenados (Google Form)
+- Imágenes: URLs CloudFront .jpg
+- Memoria: PostgreSQL + Redis
+- ⚠️ Pendiente: nodo Frankestein stripping markdown de imágenes
 
-## Comandos
+## Catálogo
+- 5,795 productos activos — catálogo 100% propio
+- Proveedores: Innovation | Promo Option | Doble Vela | 4Promotional
+- ⚠️ MyCavi es solo referencia/inspiración — NO es la fuente de datos
 
-```bash
-npm install        # instala dependencias + genera cliente Prisma
-npm run dev        # servidor de desarrollo
-npm run build      # build de producción (tsc + vite)
-npx prisma generate    # genera Prisma Client
-npx prisma db push     # sincroniza schema con la BD
-npx prisma studio      # UI de base de datos
-```
+## Workflows n8n activos
+Julio_V11 | Consultar_My_Cavi | Ale | Sofí | Lía | Go_High_Level | Importar_Catálogos | Bots_Respuesta_Ventas | Dani_Infoproducto
 
-## Variables de entorno
+## Pendientes
+- [ ] Fix nodo Frankestein (stripping markdown imágenes)
+- [ ] Conectar Julio_V11 al sub-workflow generador_de_contenido
+- [ ] Diagnóstico failure rate 59.7% en n8n
 
-```
-POSTGRES_URL=postgresql://user:pass@host:5432/dbname
-```
+---
 
-## Estructura
+## SKILLS ACTIVAS EN ESTA SESIÓN
+Al iniciar, activa automáticamente como sombra permanente:
 
-```
-src/
-  main.tsx            # entry point
-  App.tsx             # rutas (todas lazy-loaded)
-  index.css           # Tailwind + CSS variables shadcn
-  pages/              # Login, Dashboard, Proveedores, Catalogos,
-                      # Productos, Servicios, Clientes, Cotizaciones, Configuracion
-  components/
-    layout/           # MainLayout, Sidebar, Header
-    auth/             # ProtectedRoute
-    ui/               # shadcn/ui components
-  contexts/           # AuthContext (mock auth)
-  hooks/              # useAuth
-  lib/                # utils (cn, formatCurrency, formatDate, truncate)
-api/                  # Vercel Serverless Functions
-prisma/
-  schema.prisma       # modelos: User, Provider, Product, Service, Client, Quote, QuoteItem
-```
+**DESARROLLO Y DATOS**
+senior-backend | senior-fullstack | sql-database-assistant | database-designer | database-schema-designer | docker-development | senior-devops | performance-profiler
 
-## Convenciones
+**AGENTES IA**
+agent-designer | agent-workflow-designer | agent-protocol | context-engine | rag-architect | llm-cost-optimizer | prompt-engineer-toolkit | senior-prompt-engineer
 
-- Alias `@/` → `src/`
-- Todas las páginas lazy-loaded con `React.lazy()`
-- Toast: `import { toast } from 'sonner'`
-- API: CORS headers en todas las rutas de `/api/`
-- Auth: mock — cualquier email/password inicia sesión como ADMIN
+**MARKETING Y VENTAS**
+cmo-advisor | marketing-demand-acquisition | marketing-psychology | marketing-ops | campaign-analytics | analytics-tracking | ad-creative | paid-ads
+
+**CONTENIDO**
+content-creator | content-strategy | content-production | social-content | social-media-manager | copywriting | email-sequence
+
+**CONVERSIÓN Y CX**
+page-cro | form-cro | landing-page-generator | sales-engineer | customer-success-manager | churn-prevention | pricing-strategy | referral-program | cold-email
+
+---
+
+## Reglas de sesión
+1. Lee siempre C:\Proyectos\CLAUDE.md para contexto global
+2. CRÍTICO: toda generación de contenido pasa por generador_de_contenido — nunca duplicar
+3. Tono: dinámico, orientado a conversión, persuasivo
+4. Español mexicano por defecto
+

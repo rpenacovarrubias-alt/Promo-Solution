@@ -90,7 +90,7 @@ export default function CotizarPage() {
               <div key={item.producto_id} className="card p-4 flex gap-4">
                 <div className="relative w-20 h-20 flex-shrink-0 bg-gray-50 rounded-lg overflow-hidden">
                   <Image
-                    src={item.imageUrl ?? '/placeholder-product.png'}
+                    src={item.imageUrl ?? '/placeholder-product.svg'}
                     alt={item.nombre}
                     fill className="object-contain p-1"
                   />

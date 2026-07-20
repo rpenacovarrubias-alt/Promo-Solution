@@ -78,7 +78,7 @@ export interface ApiQuoteItem {
 
 /** Devuelve la URL de la imagen principal del producto, o el placeholder. */
 export function getProductImageUrl(product: ApiProduct): string {
-  return product.images[0]?.url ?? '/placeholder-product.png'
+  return product.images[0]?.url ?? '/placeholder-product.svg'
 }
 
 /** Cantidad mínima de pedido del producto. */

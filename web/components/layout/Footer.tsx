@@ -55,6 +55,7 @@ export function Footer() {
           <div>
             <h3 className="text-gold-400 font-semibold text-sm mb-3">Empresa</h3>
             <ul className="space-y-2 text-sm text-navy-200">
+              <li><Link href="/nosotros" className="hover:text-gold-400 transition-colors">Nosotros</Link></li>
               <li><Link href="/contacto" className="hover:text-gold-400 transition-colors">Contacto</Link></li>
               <li><Link href="/cotizar" className="hover:text-gold-400 transition-colors">Solicitar cotización</Link></li>
             </ul>

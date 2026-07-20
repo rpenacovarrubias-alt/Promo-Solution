@@ -105,6 +105,10 @@ export function Header() {
               className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-navy-700 rounded-lg hover:bg-navy-50">
               Catálogo
             </Link>
+            <Link href="/nosotros"
+              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-navy-700 rounded-lg hover:bg-navy-50">
+              Nosotros
+            </Link>
             <Link href="/contacto"
               className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-navy-700 rounded-lg hover:bg-navy-50">
               Contacto
@@ -150,6 +154,7 @@ export function Header() {
               {cat}
             </Link>
           ))}
+          <Link href="/nosotros" className="block py-2 text-sm text-gray-700">Nosotros</Link>
           <Link href="/contacto" className="block py-2 text-sm text-gray-700">Contacto</Link>
         </div>
       )}
