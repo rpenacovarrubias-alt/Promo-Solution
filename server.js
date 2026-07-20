@@ -21,6 +21,7 @@ import categoriesRouter  from './routes/categories.js'
 import clientsRouter     from './routes/clients.js'
 import collectionsRouter from './routes/collections.js'
 import configRouter      from './routes/config.js'
+import pagesRouter       from './routes/pages.js'
 import productsRouter    from './routes/products.js'
 import providersRouter   from './routes/providers.js'
 import quotesRouter      from './routes/quotes.js'
@@ -68,6 +69,7 @@ app.use('/api/categories',  categoriesRouter)
 app.use('/api/clients',     clientsRouter)
 app.use('/api/collections', collectionsRouter)
 app.use('/api/config',      configRouter)
+app.use('/api/pages',       pagesRouter)
 app.use('/api/products',    productsRouter)
 app.use('/api/providers',   providersRouter)
 app.use('/api/quotes',      quotesRouter)

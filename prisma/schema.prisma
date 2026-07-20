@@ -224,6 +224,32 @@ model Config {
   @@schema("promo_panel")
 }
 
+// ─── Páginas del sitio ────────────────────────────────────────────────────────
+
+model Page {
+  id             String     @id @default(cuid())
+  slug           String     @unique
+  title          String
+  status         PageStatus @default(INACTIVE)
+  isSystem       Boolean    @default(false)
+  seoImageUrl    String?
+  seoKeywords    String?
+  seoDescription String?
+  extraContent   String?    // JSON: slider slides, banner image, etc.
+  sortOrder      Int        @default(0)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@schema("promo_panel")
+}
+
+enum PageStatus {
+  PUBLIC
+  INACTIVE
+
+  @@schema("promo_panel")
+}
+
 // ─── Cotizaciones ─────────────────────────────────────────────────────────────
 
 model Quote {

@@ -14,6 +14,8 @@ import {
   ChevronDown,
   UserCog,
   Globe,
+  FileStack,
+  ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -42,12 +44,12 @@ const navGroups: NavGroup[] = [
     collapsible: true,
     defaultOpen: true,
     items: [
-      { to: '/proveedores', icon: Truck, label: 'Proveedores' },
-      { to: '/catalogos', icon: BookOpen, label: 'Catálogos' },
-      { to: '/categorias', icon: Tag, label: 'Categorías' },
-      { to: '/colecciones', icon: FolderOpen, label: 'Colecciones' },
-      { to: '/productos', icon: Package, label: 'Productos' },
-      { to: '/servicios', icon: Scissors, label: 'Servicios' },
+      { to: '/proveedores',  icon: Truck,       label: 'Proveedores' },
+      { to: '/catalogos',    icon: BookOpen,    label: 'Catálogos' },
+      { to: '/categorias',   icon: Tag,         label: 'Categorías' },
+      { to: '/colecciones',  icon: FolderOpen,  label: 'Colecciones' },
+      { to: '/productos',    icon: Package,     label: 'Productos' },
+      { to: '/servicios',    icon: Scissors,    label: 'Servicios' },
     ],
   },
   {
@@ -55,17 +57,25 @@ const navGroups: NavGroup[] = [
     collapsible: true,
     defaultOpen: true,
     items: [
-      { to: '/clientes', icon: Users, label: 'Clientes' },
+      { to: '/clientes',     icon: Users,    label: 'Clientes' },
       { to: '/cotizaciones', icon: FileText, label: 'Cotizaciones' },
     ],
   },
   {
-    title: 'Sistema',
+    title: 'Preferencias',
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { to: '/configuracion', icon: Settings,   label: 'Configuración' },
+      { to: '/paginas',       icon: FileStack,  label: 'Páginas' },
+    ],
+  },
+  {
+    title: 'Administrador',
     collapsible: true,
     defaultOpen: false,
     items: [
       { to: '/usuarios', icon: UserCog, label: 'Usuarios' },
-      { to: '/configuracion', icon: Settings, label: 'Configuración' },
     ],
   },
 ]

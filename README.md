@@ -8,7 +8,7 @@ Repo: `rpenacovarrubias-alt/Promo-Solution`
 - **Next.js 14** (App Router) — sitio web + API
 - **PostgreSQL** — catálogo unificado (mismo servidor que n8n)
 - **Tailwind CSS** — estilos con branding navy/gold
-- **Docker** — deploy en EasyPanel
+- **Vercel** — deploy del sitio (build automático en cada push a `main`)
 
 ## Estructura
 
@@ -67,15 +67,9 @@ npm run dev
 # Sitio en http://localhost:3000
 ```
 
-### 4. Deploy en EasyPanel
+### 4. Deploy
 
-```bash
-# En EasyPanel, crear nuevo servicio tipo "App"
-# Image: ghcr.io/rpenacovarrubias-alt/promo-solution/web:latest
-# Variables de entorno: copiar de .env.example y llenar valores reales
-# Puerto: 3000
-# Dominio: promosolution.com.mx
-```
+El sitio se despliega en **Vercel**, conectado por Git al repo — cada push a `main` dispara un build y deploy automático. No se despliega en EasyPanel; ahí solo vive la base de datos PostgreSQL (`promosolution-db`).
 
 ## API para Julio (n8n)
 
