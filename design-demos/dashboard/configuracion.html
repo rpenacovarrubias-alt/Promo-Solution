@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Promo Solution — Configuración</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy: #17264A; --navy-deep: #101B34; --gold: #C9A15A; --gold-soft: #FDF6E8;
+    --bg: #F7F8FA; --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  *{ font-family: 'Plus Jakarta Sans', sans-serif; }
+  body{ background: var(--bg); }
+  .nav-item{ transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out); }
+  .nav-item .indicator{ transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out); transform: scaleY(0); opacity: 0; }
+  .nav-item.active .indicator{ transform: scaleY(1); opacity: 1; }
+  .nav-item:not(.active):hover{ background-color: rgba(255,255,255,0.06); }
+  .btn-press{ transition: transform 140ms var(--ease-out); }
+  .btn-press:active{ transform: scale(0.97); }
+  .toptab{ transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out); border-bottom: 2px solid transparent; }
+  .toptab.active{ color: var(--navy); border-color: var(--gold); }
+  .toptab:not(.active){ color: #94A3B8; }
+  .toptab:not(.active):hover{ color: #64748B; }
+  .submenu-item{ transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out); }
+  .submenu-item.active{ background: var(--gold-soft); color: #A8823F; font-weight: 600; }
+  .submenu-item:not(.active):hover{ background: #F8F9FB; }
+  .panel{ animation: fadeIn 260ms var(--ease-out); }
+  @keyframes fadeIn{ from{ opacity:0; transform: translateY(6px);} to{ opacity:1; transform: translateY(0);} }
+  select, input[type="text"], input[type="number"], input[type="email"], textarea{ transition: border-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
+  select:focus, input:focus, textarea:focus{ outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(23,38,74,0.1); }
+  .toggle{ width: 40px; height: 22px; border-radius: 999px; position: relative; cursor: pointer; transition: background-color 160ms var(--ease-out); background: #E2E8F0; }
+  .toggle .knob{ position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:white; transition: transform 180ms var(--ease-out); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+  .toggle.on{ background: var(--gold); }
+  .toggle.on .knob{ transform: translateX(18px); }
+  .hidden{ display:none !important; }
+  .color-row{ display:flex; align-items:center; gap:10px; }
+  .color-swatch{ width:32px; height:32px; border-radius:8px; border:1px solid #E2E8F0; cursor:pointer; padding:0; }
+</style>
+</head>
+<body class="text-slate-800">
+
+<div class="flex min-h-screen">
+
+  <!-- SIDEBAR -->
+  <aside class="w-64 shrink-0 flex flex-col" style="background: var(--navy);">
+    <div class="h-20 flex items-center gap-3 px-6 border-b" style="border-color: rgba(255,255,255,0.08);">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <path d="M6 3h13a8 8 0 0 1 0 16h-8v8H6V3z" fill="white"/>
+        <path d="M11 8h7a3.5 3.5 0 0 1 0 7h-7V8z" fill="var(--navy)"/>
+      </svg>
+      <div class="leading-tight">
+        <div class="text-white font-bold text-[15px] tracking-wide">PROMO</div>
+        <div class="text-[11px] font-semibold tracking-[0.2em]" style="color: var(--gold);">SOLUTION</div>
+      </div>
+    </div>
+    <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+      <div>
+        <a href="variante-a-sidebar-navy.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>Dashboard</a>
+      </div>
+      <div>
+        <div class="px-3 mb-2 text-[11px] font-semibold tracking-wider uppercase" style="color: rgba(255,255,255,0.4);">Catálogo</div>
+        <div class="space-y-1">
+          <a href="proveedores.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Proveedores</a>
+          <a href="catalogos.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Catálogos</a>
+          <a href="categorias.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41L12 22l-8.59-8.59A2 2 0 0 1 3 12V4a1 1 0 0 1 1-1h8a2 2 0 0 1 1.41.59l8.18 8.18a2 2 0 0 1 0 2.83z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Categorías</a>
+          <a href="#" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Colecciones</a>
+          <a href="productos.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-3V6a4 4 0 0 0-8 0v1H6a1 1 0 0 0-1 1v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a1 1 0 0 0-1-1z"/></svg>Productos</a>
+          <a href="#" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Servicios</a>
+        </div>
+      </div>
+      <div>
+        <div class="px-3 mb-2 text-[11px] font-semibold tracking-wider uppercase" style="color: rgba(255,255,255,0.4);">Ventas</div>
+        <div class="space-y-1">
+          <a href="clientes.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Clientes</a>
+          <a href="nueva-cotizacion.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Cotizaciones</a>
+        </div>
+      </div>
+      <div>
+        <div class="px-3 mb-2 text-[11px] font-semibold tracking-wider uppercase" style="color: rgba(255,255,255,0.4);">Preferencias</div>
+        <div class="space-y-1">
+          <a href="configuracion.html" class="nav-item active relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-white font-medium text-sm" style="background: rgba(255,255,255,0.07);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configuración</a>
+          <a href="#" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Páginas</a>
+        </div>
+      </div>
+      <div>
+        <div class="px-3 mb-2 text-[11px] font-semibold tracking-wider uppercase" style="color: rgba(255,255,255,0.4);">Administrador</div>
+        <a href="usuarios.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Usuarios</a>
+      </div>
+    </nav>
+    <div class="px-6 py-4 text-[11px] border-t" style="color: rgba(255,255,255,0.35); border-color: rgba(255,255,255,0.08);">v1.0.0 · Promo Solution</div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <header class="h-16 shrink-0 bg-white border-b border-slate-200 flex items-center px-8">
+      <h1 class="text-lg font-bold text-slate-900">Configuración</h1>
+      <span class="ml-2 text-sm text-slate-400">— ajustes del sitio web público</span>
+    </header>
+
+    <!-- TOP TABS -->
+    <div class="bg-white border-b border-slate-200 px-8 flex gap-6" id="top-tabs">
+      <button class="toptab active px-1 py-4 text-sm font-semibold" data-tab="generales">Generales</button>
+      <button class="toptab px-1 py-4 text-sm font-semibold" data-tab="productos">Productos</button>
+      <button class="toptab px-1 py-4 text-sm font-semibold" data-tab="cotizaciones">Cotizaciones</button>
+      <button class="toptab px-1 py-4 text-sm font-semibold" data-tab="cabecera">Cabecera</button>
+      <button class="toptab px-1 py-4 text-sm font-semibold" data-tab="piepagina">Pie de página</button>
+    </div>
+
+    <main class="flex-1 overflow-y-auto flex">
+
+      <!-- SUBMENU -->
+      <aside class="w-56 shrink-0 bg-white border-r border-slate-100 p-4 space-y-1">
+        <div class="submenu-group" data-group="generales">
+          <button class="submenu-item active w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="notificaciones">Notificaciones</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="logotipos">Logotipos</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="seo">SEO</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="css">CSS</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="colores">Colores y botones</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="tipografia">Tipografía</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="buscador">Buscador</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="carrito">Carrito</button>
+        </div>
+        <div class="submenu-group hidden" data-group="productos">
+          <button class="submenu-item active w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="p-config">Configuraciones</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="p-carrusel">Diseño carrusel</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="p-preview">Diseño de vista previa</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="p-detalle">Vista detalle</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="p-coleccion">Colección destacada</button>
+        </div>
+        <div class="submenu-group hidden" data-group="cotizaciones">
+          <button class="submenu-item active w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="c-general">General</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="c-pdf">PDF</button>
+        </div>
+        <div class="submenu-group hidden" data-group="cabecera">
+          <button class="submenu-item active w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="h-menu">Menú</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="h-mensaje">Mensaje superior</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="h-apariencia">Apariencia</button>
+        </div>
+        <div class="submenu-group hidden" data-group="piepagina">
+          <button class="submenu-item active w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="f-menu">Menú</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="f-apariencia">Apariencia</button>
+          <button class="submenu-item w-full text-left px-3 py-2.5 rounded-lg text-sm" data-panel="f-redes">Redes sociales</button>
+        </div>
+      </aside>
+
+      <!-- CONTENT -->
+      <div class="flex-1 p-8 max-w-3xl">
+
+        <!-- GENERALES -->
+        <div id="panel-notificaciones" class="panel">
+          <h2 class="font-bold text-slate-900 mb-1">Notificaciones por correo</h2>
+          <p class="text-sm text-slate-500 mb-4">Formularios de cotización, cliente nuevo y contacto en el sitio.</p>
+          <input type="text" value="ventas@promosolution.com.mx" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm mb-1">
+          <p class="text-xs text-slate-400 mb-5">Separar con comas (,)</p>
+          <div class="flex items-center gap-3">
+            <div class="toggle" onclick="this.classList.toggle('on')"><div class="knob"></div></div>
+            <span class="text-sm font-medium text-slate-700">Cotizaciones por WhatsApp</span>
+          </div>
+          <button class="btn-press mt-6 px-5 py-2.5 rounded-lg text-white text-sm font-semibold" style="background: var(--navy);">Actualizar</button>
+        </div>
+
+        <div id="panel-logotipos" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Logotipos</h2>
+          <div class="space-y-4">
+            <div class="flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-200">
+              <div class="w-16 h-16 rounded-lg flex items-center justify-center shrink-0" style="background: var(--navy);">
+                <svg width="26" height="26" viewBox="0 0 30 30" fill="none"><path d="M6 3h13a8 8 0 0 1 0 16h-8v8H6V3z" fill="white"/><path d="M11 8h7a3.5 3.5 0 0 1 0 7h-7V8z" fill="var(--navy)"/></svg>
+              </div>
+              <div class="flex-1">
+                <div class="font-semibold text-sm text-slate-800">Principal</div>
+                <div class="text-xs text-slate-400">Usado en el menú · máx. 300×90px</div>
+              </div>
+              <button class="btn-press px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">Cambiar</button>
+            </div>
+            <div class="flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-200">
+              <div class="w-16 h-16 rounded-lg flex items-center justify-center shrink-0 border border-slate-200">
+                <svg width="26" height="26" viewBox="0 0 30 30" fill="none"><path d="M6 3h13a8 8 0 0 1 0 16h-8v8H6V3z" fill="var(--navy)"/><path d="M11 8h7a3.5 3.5 0 0 1 0 7h-7V8z" fill="white"/></svg>
+              </div>
+              <div class="flex-1">
+                <div class="font-semibold text-sm text-slate-800">Secundario</div>
+                <div class="text-xs text-slate-400">Fondos oscuros / pie de página</div>
+              </div>
+              <button class="btn-press px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">Cambiar</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="panel-seo" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">SEO Principal</h2>
+          <label class="text-sm font-medium text-slate-700 mb-1 block">Palabras clave</label>
+          <textarea rows="2" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm mb-4">Promocional, Uniforme, uniformes, termos, logotipo impreso, gorras</textarea>
+          <label class="text-sm font-medium text-slate-700 mb-1 block">Descripción</label>
+          <textarea rows="3" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm mb-4">Promo Solution tiene la solución para tu marca, artículos promocionales con tu marca impresa en diferentes técnicas.</textarea>
+          <button class="btn-press px-5 py-2.5 rounded-lg text-white text-sm font-semibold" style="background: var(--navy);">Actualizar</button>
+        </div>
+
+        <div id="panel-css" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-1">Código CSS personalizado</h2>
+          <p class="text-sm text-slate-500 mb-4">Ej: <code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">.header_logo_img { max-width: 120px; }</code></p>
+          <textarea rows="8" placeholder="/* CSS personalizado */" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm font-mono"></textarea>
+        </div>
+
+        <div id="panel-colores" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Colores y botones</h2>
+          <div class="grid grid-cols-2 gap-5 mb-6">
+            <div class="color-row"><input type="color" value="#17264A" class="color-swatch"><div><div class="text-sm font-medium text-slate-700">Color primario</div><div class="text-xs text-slate-400">#17264A</div></div></div>
+            <div class="color-row"><input type="color" value="#C9A15A" class="color-swatch"><div><div class="text-sm font-medium text-slate-700">Color secundario</div><div class="text-xs text-slate-400">#C9A15A</div></div></div>
+            <div class="color-row"><input type="color" value="#C9A15A" class="color-swatch"><div><div class="text-sm font-medium text-slate-700">Color de botones</div><div class="text-xs text-slate-400">#C9A15A</div></div></div>
+            <div class="color-row"><input type="color" value="#17264A" class="color-swatch"><div><div class="text-sm font-medium text-slate-700">Color de texto</div><div class="text-xs text-slate-400">#17264A</div></div></div>
+          </div>
+          <div class="p-5 rounded-xl border border-slate-200" style="background: linear-gradient(135deg, #FBFAF8, white);">
+            <div class="text-xs text-slate-400 mb-2 uppercase tracking-wide">Vista previa</div>
+            <div class="text-lg font-bold" style="color:#17264A;">Título de ejemplo</div>
+            <p class="text-sm mt-1" style="color:#17264A;">Así se vería el texto del sitio con estos colores.</p>
+            <button class="mt-3 px-4 py-2 rounded-lg text-white text-sm font-semibold" style="background:#C9A15A;">Botón de ejemplo</button>
+          </div>
+          <button class="btn-press mt-5 px-5 py-2.5 rounded-lg text-white text-sm font-semibold" style="background: var(--navy);">Actualizar</button>
+        </div>
+
+        <div id="panel-tipografia" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Tipografía</h2>
+          <label class="text-sm font-medium text-slate-700 mb-1 block">Fuente</label>
+          <select id="font-select" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm mb-5" onchange="document.getElementById('font-preview').style.fontFamily = this.value">
+            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="'Courier New', monospace">Courier New</option>
+          </select>
+          <div id="font-preview" class="p-5 rounded-xl border border-slate-200 bg-white">
+            <div class="text-xl font-bold" style="color: var(--navy);">Título principal</div>
+            <p class="text-sm text-slate-600 mt-1">Productos promocionales de calidad.</p>
+          </div>
+        </div>
+
+        <div id="panel-buscador" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Buscador</h2>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="toggle on" onclick="this.classList.toggle('on')"><div class="knob"></div></div>
+            <span class="text-sm font-medium text-slate-700">Mostrar siempre</span>
+          </div>
+          <div class="p-4 rounded-xl border border-slate-200 bg-white max-w-sm">
+            <div class="relative">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" placeholder="Buscar productos..." class="w-full pl-9 pr-3 py-2 rounded-full border border-slate-200 text-sm">
+            </div>
+          </div>
+        </div>
+
+        <div id="panel-carrito" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Carrito</h2>
+          <label class="text-sm font-medium text-slate-700 mb-1 block">Alerta</label>
+          <textarea rows="2" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm mb-5">Los precios no incluyen decorado/impresión (revisar con ejecutivo).</textarea>
+          <label class="text-sm font-medium text-slate-700 mb-2 block">Estilo</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-slate-200 text-sm cursor-pointer"><input type="radio" name="cart-style" checked>Clásico</label>
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-slate-200 text-sm cursor-pointer"><input type="radio" name="cart-style">Minimalista</label>
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-slate-200 text-sm cursor-pointer"><input type="radio" name="cart-style">Pantalla completa</label>
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-slate-200 text-sm cursor-pointer"><input type="radio" name="cart-style">Vista separada</label>
+          </div>
+        </div>
+
+        <!-- PRODUCTOS -->
+        <div id="panel-p-config" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Configuraciones</h2>
+          <div class="grid grid-cols-2 gap-5 mb-6">
+            <div><label class="text-sm font-medium text-slate-700 mb-1 block">Mostrar Stock</label><select class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm"><option>Todos</option><option selected>Solo a clientes</option><option>Ninguno</option></select></div>
+            <div><label class="text-sm font-medium text-slate-700 mb-1 block">Mostrar Precios</label><select class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm"><option>Todos</option><option selected>Solo a clientes</option><option>Ninguno</option></select></div>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-sm mb-1">Enmascarar códigos</h3>
+          <p class="text-xs text-slate-400 mb-3">El código original del proveedor no será visible para los clientes.</p>
+          <div class="flex items-center gap-3 mb-2"><div class="toggle on" onclick="this.classList.toggle('on')"><div class="knob"></div></div><span class="text-sm text-slate-700">De proveedor</span></div>
+          <div class="flex items-center gap-3"><div class="toggle" onclick="this.classList.toggle('on')"><div class="knob"></div></div><span class="text-sm text-slate-700">Productos propios</span></div>
+        </div>
+
+        <div id="panel-p-carrusel" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Diseño carrusel</h2>
+          <label class="text-sm font-medium text-slate-700 mb-1 block">Estilo</label>
+          <select class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm mb-5"><option>Clásico</option><option>Moderno</option><option>Minimalista</option></select>
+          <div class="flex items-center gap-3"><div class="toggle on" onclick="this.classList.toggle('on')"><div class="knob"></div></div><span class="text-sm text-slate-700">Mostrar flechas</span></div>
+        </div>
+
+        <div id="panel-p-preview" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Diseño de vista previa</h2>
+          <div class="grid grid-cols-2 gap-2 max-w-sm">
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-slate-200 text-sm cursor-pointer"><input type="radio" name="preview-style" checked>Clásico</label>
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-slate-200 text-sm cursor-pointer"><input type="radio" name="preview-style">Minimalista</label>
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-slate-200 text-sm cursor-pointer"><input type="radio" name="preview-style">Compacto</label>
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-slate-200 text-sm cursor-pointer"><input type="radio" name="preview-style">Sencillo</label>
+          </div>
+        </div>
+
+        <div id="panel-p-detalle" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Vista detalle — Nota</h2>
+          <textarea rows="3" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm">*Los precios son de carácter informativo, por lo que están sujetos a cambios sin previo aviso y son más IVA.</textarea>
+        </div>
+
+        <div id="panel-p-coleccion" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-2">Colección destacada</h2>
+          <p class="text-sm text-slate-500 mb-4">Al activar se reemplazan los productos del mes en la página de inicio por la colección seleccionada.</p>
+          <div class="flex items-center gap-3"><div class="toggle" onclick="this.classList.toggle('on')"><div class="knob"></div></div><span class="text-sm text-slate-700">Activar</span></div>
+        </div>
+
+        <!-- COTIZACIONES -->
+        <div id="panel-c-general" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">General</h2>
+          <div class="mb-5">
+            <h3 class="font-semibold text-slate-800 text-sm mb-1">Cotizaciones como invitado</h3>
+            <p class="text-xs text-slate-400 mb-2">Permite que los visitantes envíen cotizaciones sin necesidad de registrarse.</p>
+            <div class="flex items-center gap-3"><div class="toggle" onclick="this.classList.toggle('on')"><div class="knob"></div></div><span class="text-sm text-slate-700">Activar</span></div>
+          </div>
+          <div>
+            <h3 class="font-semibold text-slate-800 text-sm mb-1">Técnica de impresión</h3>
+            <p class="text-xs text-slate-400 mb-2">Si se desactiva, no se mostrarán precios de las impresiones.</p>
+            <div class="flex items-center gap-3"><div class="toggle on" onclick="this.classList.toggle('on')"><div class="knob"></div></div><span class="text-sm text-slate-700">Desglosar</span></div>
+          </div>
+        </div>
+
+        <div id="panel-c-pdf" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">PDF</h2>
+          <label class="text-sm font-medium text-slate-700 mb-1 block">Nota fija (aparece en todos los PDF)</label>
+          <textarea rows="3" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm mb-5">Atentamente, Promo Solution — ventas@promosolution.com.mx</textarea>
+          <label class="text-sm font-medium text-slate-700 mb-2 block">Estilo</label>
+          <select class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm">
+            <option>Listado de productos</option>
+            <option>Producto por página</option>
+          </select>
+        </div>
+
+        <!-- CABECERA -->
+        <div id="panel-h-menu" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-1">Menú</h2>
+          <p class="text-sm text-slate-500 mb-4">Arrastra y suelta para cambiar el orden.</p>
+          <div class="space-y-2 max-w-sm">
+            <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><span class="text-sm font-medium text-slate-700">Inicio</span></div>
+            <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><span class="text-sm font-medium text-slate-700">Categorías</span></div>
+            <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><span class="text-sm font-medium text-slate-700">Contacto</span></div>
+          </div>
+        </div>
+
+        <div id="panel-h-mensaje" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Mensaje superior</h2>
+          <div class="flex items-center gap-3 mb-4"><div class="toggle on" onclick="this.classList.toggle('on')"><div class="knob"></div></div><span class="text-sm text-slate-700">Visible</span></div>
+          <input type="text" id="marquee-text" value="Tu Marca en mano de todos" oninput="document.getElementById('marquee-preview').textContent = this.value" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm mb-4">
+          <div class="rounded-lg py-2 text-center text-sm font-medium text-white" style="background: var(--navy);"><span id="marquee-preview">Tu Marca en mano de todos</span></div>
+        </div>
+
+        <div id="panel-h-apariencia" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Apariencia de la cabecera</h2>
+          <label class="text-sm font-medium text-slate-700 mb-2 block">Estilo</label>
+          <select class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm mb-5"><option>Clásico</option><option>Moderno</option><option>Transparente</option></select>
+          <div class="rounded-xl border border-slate-200 overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-3 bg-white">
+              <div class="flex items-center gap-2"><svg width="20" height="20" viewBox="0 0 30 30" fill="none"><path d="M6 3h13a8 8 0 0 1 0 16h-8v8H6V3z" fill="var(--navy)"/></svg><span class="font-bold text-sm" style="color:var(--navy);">PROMO SOLUTION</span></div>
+              <div class="flex gap-4 text-xs text-slate-500"><span>Inicio</span><span>Categorías</span><span>Contacto</span></div>
+              <button class="px-3 py-1.5 rounded-full text-white text-xs font-semibold" style="background: var(--gold);">Cotizar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PIE DE PAGINA -->
+        <div id="panel-f-menu" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-1">Menú</h2>
+          <p class="text-sm text-slate-500 mb-4">Mismos elementos que la cabecera, orden independiente.</p>
+          <div class="space-y-2 max-w-sm">
+            <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><span class="text-sm font-medium text-slate-700">Nosotros</span></div>
+            <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><span class="text-sm font-medium text-slate-700">Contacto</span></div>
+          </div>
+        </div>
+
+        <div id="panel-f-apariencia" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Apariencia del pie de página</h2>
+          <div class="rounded-xl overflow-hidden">
+            <div class="px-5 py-6 flex items-center justify-between" style="background: var(--navy);">
+              <div>
+                <div class="text-white font-bold text-sm">PROMO SOLUTION</div>
+                <div class="text-xs mt-1" style="color: rgba(255,255,255,0.6);">ventas@promosolution.com.mx · 442 131 4203</div>
+              </div>
+              <div class="text-xs" style="color: rgba(255,255,255,0.5);">© 2026 Promo Solution</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="panel-f-redes" class="panel hidden">
+          <h2 class="font-bold text-slate-900 mb-4">Redes sociales</h2>
+          <button class="btn-press flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold" style="background: var(--gold-soft); color:#A8823F;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Agregar red social
+          </button>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.toptab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.toptab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.tab;
+      document.querySelectorAll('.submenu-group').forEach(g => g.classList.toggle('hidden', g.dataset.group !== target));
+      const firstBtn = document.querySelector(`.submenu-group[data-group="${target}"] .submenu-item`);
+      document.querySelectorAll('.submenu-item').forEach(i => i.classList.remove('active'));
+      firstBtn.classList.add('active');
+      showPanel(firstBtn.dataset.panel);
+    });
+  });
+
+  document.querySelectorAll('.submenu-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const group = item.closest('.submenu-group');
+      group.querySelectorAll('.submenu-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      showPanel(item.dataset.panel);
+    });
+  });
+
+  function showPanel(name){
+    document.querySelectorAll('[id^="panel-"]').forEach(p => p.classList.add('hidden'));
+    document.getElementById('panel-' + name).classList.remove('hidden');
+  }
+</script>
+
+</body>
+</html>

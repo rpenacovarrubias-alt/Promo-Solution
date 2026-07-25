@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Promo Solution — Nueva cotización</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy: #17264A; --navy-deep: #101B34; --gold: #C9A15A; --gold-soft: #FDF6E8;
+    --bg: #F7F8FA; --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  *{ font-family: 'Plus Jakarta Sans', sans-serif; }
+  body{ background: var(--bg); }
+  .nav-item{ transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out); }
+  .nav-item .indicator{ transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out); transform: scaleY(0); opacity: 0; }
+  .nav-item.active .indicator{ transform: scaleY(1); opacity: 1; }
+  .nav-item:not(.active):hover{ background-color: rgba(255,255,255,0.06); }
+  .btn-press{ transition: transform 140ms var(--ease-out); }
+  .btn-press:active{ transform: scale(0.97); }
+  .step-panel{ animation: fadeIn 280ms var(--ease-out); }
+  @keyframes fadeIn{ from{ opacity:0; transform: translateY(6px);} to{ opacity:1; transform: translateY(0);} }
+  .step-dot{ transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out), border-color 200ms var(--ease-out); }
+  .client-row{ transition: background-color 140ms var(--ease-out), border-color 140ms var(--ease-out); cursor: pointer; }
+  .client-row:hover{ background-color: #F8F5EE; }
+  .client-row.selected{ background-color: var(--gold-soft); border-color: var(--gold); }
+  .prod-card{ transition: box-shadow 200ms var(--ease-out), transform 200ms var(--ease-out); }
+  .prod-card:hover{ box-shadow: 0 8px 24px -8px rgba(23,38,74,0.18); transform: translateY(-2px); }
+  select, input[type="text"], input[type="number"], textarea{ transition: border-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
+  select:focus, input:focus, textarea:focus{ outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(23,38,74,0.1); }
+  .hidden{ display:none !important; }
+  #modal-backdrop{ opacity:0; transition: opacity 200ms var(--ease-out); }
+  .modal-panel{ opacity:0; transform: scale(0.95); transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out); }
+  #modal-new-client.open #modal-backdrop{ opacity:1; }
+  #modal-new-client.open .modal-panel{ opacity:1; transform: scale(1); }
+  .client-row-enter{ animation: fadeUpRow 320ms var(--ease-out); }
+  @keyframes fadeUpRow{ from{ opacity:0; transform: translateY(-6px);} to{ opacity:1; transform: translateY(0);} }
+  .swatch-tile{ background: linear-gradient(135deg, var(--tile-a) 0 50%, var(--tile-b) 50% 100%); }
+  .row-remove{ opacity:0; transition: opacity 140ms var(--ease-out); }
+  tr:hover .row-remove{ opacity:1; }
+</style>
+</head>
+<body class="text-slate-800">
+
+<div class="flex min-h-screen">
+
+  <!-- SIDEBAR -->
+  <aside class="w-64 shrink-0 flex flex-col" style="background: var(--navy);">
+    <div class="h-20 flex items-center gap-3 px-6 border-b" style="border-color: rgba(255,255,255,0.08);">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <path d="M6 3h13a8 8 0 0 1 0 16h-8v8H6V3z" fill="white"/>
+        <path d="M11 8h7a3.5 3.5 0 0 1 0 7h-7V8z" fill="var(--navy)"/>
+      </svg>
+      <div class="leading-tight">
+        <div class="text-white font-bold text-[15px] tracking-wide">PROMO</div>
+        <div class="text-[11px] font-semibold tracking-[0.2em]" style="color: var(--gold);">SOLUTION</div>
+      </div>
+    </div>
+    <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+      <div>
+        <a href="variante-a-sidebar-navy.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);">
+          <span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>
+          Dashboard
+        </a>
+      </div>
+      <div>
+        <div class="px-3 mb-2 text-[11px] font-semibold tracking-wider uppercase" style="color: rgba(255,255,255,0.4);">Catálogo</div>
+        <div class="space-y-1">
+          <a href="proveedores.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Proveedores</a>
+          <a href="catalogos.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Catálogos</a>
+          <a href="categorias.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41L12 22l-8.59-8.59A2 2 0 0 1 3 12V4a1 1 0 0 1 1-1h8a2 2 0 0 1 1.41.59l8.18 8.18a2 2 0 0 1 0 2.83z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Categorías</a>
+          <a href="#" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Colecciones</a>
+          <a href="productos.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-3V6a4 4 0 0 0-8 0v1H6a1 1 0 0 0-1 1v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a1 1 0 0 0-1-1z"/></svg>Productos</a>
+          <a href="#" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Servicios</a>
+        </div>
+      </div>
+      <div>
+        <div class="px-3 mb-2 text-[11px] font-semibold tracking-wider uppercase" style="color: rgba(255,255,255,0.4);">Ventas</div>
+        <div class="space-y-1">
+          <a href="clientes.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Clientes</a>
+          <a href="nueva-cotizacion.html" class="nav-item active relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-white font-medium text-sm" style="background: rgba(255,255,255,0.07);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Cotizaciones</a>
+        </div>
+      </div>
+      <div>
+        <div class="px-3 mb-2 text-[11px] font-semibold tracking-wider uppercase" style="color: rgba(255,255,255,0.4);">Preferencias</div>
+        <div class="space-y-1">
+          <a href="configuracion.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configuración</a>
+          <a href="#" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Páginas</a>
+        </div>
+      </div>
+      <div>
+        <div class="px-3 mb-2 text-[11px] font-semibold tracking-wider uppercase" style="color: rgba(255,255,255,0.4);">Administrador</div>
+        <a href="usuarios.html" class="nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color: rgba(255,255,255,0.75);"><span class="indicator absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full" style="background: var(--gold);"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Usuarios</a>
+      </div>
+    </nav>
+    <div class="px-6 py-4 text-[11px] border-t" style="color: rgba(255,255,255,0.35); border-color: rgba(255,255,255,0.08);">v1.0.0 · Promo Solution</div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-1 flex flex-col min-w-0">
+
+    <!-- HEADER WIZARD -->
+    <header class="shrink-0 bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <h1 class="text-lg font-bold text-slate-900">Nueva cotización</h1>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2" id="step-indicator">
+          <div class="flex items-center gap-2 step-dot-group" data-step="1">
+            <span class="step-dot w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white" style="background: var(--navy);">1</span>
+            <span class="text-sm font-semibold text-slate-800">Cliente</span>
+          </div>
+          <div class="w-8 h-px bg-slate-200"></div>
+          <div class="flex items-center gap-2 step-dot-group" data-step="2">
+            <span class="step-dot w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-slate-400 border border-slate-300">2</span>
+            <span class="text-sm font-medium text-slate-400">Productos</span>
+          </div>
+          <div class="w-8 h-px bg-slate-200"></div>
+          <div class="flex items-center gap-2 step-dot-group" data-step="3">
+            <span class="step-dot w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-slate-400 border border-slate-300">3</span>
+            <span class="text-sm font-medium text-slate-400">Resumen</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <div class="text-right">
+          <div class="text-[11px] uppercase tracking-wide text-slate-400">Total</div>
+          <div class="text-xl font-bold tabular-nums" style="color: var(--navy);" id="total-display">$0.00</div>
+        </div>
+        <button class="btn-press px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">Salir</button>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto">
+
+      <!-- STEP 1: CLIENTE -->
+      <div id="step-1" class="step-panel p-8 max-w-2xl mx-auto">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-semibold text-slate-800">Selecciona un cliente</h2>
+          <button id="btn-open-new-client" class="btn-press flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold" style="background: var(--gold-soft); color:#A8823F;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+            Nuevo cliente
+          </button>
+        </div>
+        <div class="relative mb-4">
+          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="client-search" placeholder="Buscar cliente por nombre, empresa o email..." class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 text-sm">
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden" id="client-list">
+          <div class="client-row flex items-center justify-between px-5 py-4 border-l-4 border-transparent" data-name="Israel Juárez" data-email="Ji.juarez@mondragon-assembly.com.mx">
+            <div>
+              <div class="font-semibold text-sm text-slate-800">Israel Juárez</div>
+              <div class="text-xs text-slate-400">Ji.juarez@mondragon-assembly.com.mx</div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2" class="check-icon"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div class="client-row flex items-center justify-between px-5 py-4 border-l-4 border-transparent" data-name="Elizabeth Reyes" data-email="ventas@bsbajio.com">
+            <div>
+              <div class="font-semibold text-sm text-slate-800">Elizabeth Reyes</div>
+              <div class="text-xs text-slate-400">ventas@bsbajio.com</div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2" class="check-icon"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div class="client-row flex items-center justify-between px-5 py-4 border-l-4 border-transparent" data-name="Ricardo Peña" data-email="mextradebot@gmail.com">
+            <div>
+              <div class="font-semibold text-sm text-slate-800">Ricardo Peña</div>
+              <div class="text-xs text-slate-400">mextradebot@gmail.com</div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2" class="check-icon"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div class="client-row flex items-center justify-between px-5 py-4 border-l-4 border-transparent" data-name="Norma Rendón" data-email="promosolutionsmx@gmail.com">
+            <div>
+              <div class="font-semibold text-sm text-slate-800">Norma Rendón</div>
+              <div class="text-xs text-slate-400">promosolutionsmx@gmail.com</div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2" class="check-icon"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+        </div>
+        <div class="flex justify-end mt-6">
+          <button id="btn-to-step2" disabled class="btn-press px-5 py-2.5 rounded-lg text-sm font-semibold text-white opacity-40 cursor-not-allowed" style="background: var(--navy);">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- MODAL: NUEVO CLIENTE -->
+      <div id="modal-new-client" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div id="modal-backdrop" class="absolute inset-0 bg-slate-900/40"></div>
+        <div class="modal-panel relative bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="font-bold text-lg text-slate-900">Agregar Cliente</h3>
+            <button id="btn-close-new-client" class="text-slate-400 hover:text-slate-600 transition-colors">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <form id="form-new-client" class="space-y-4">
+            <div>
+              <label class="text-sm font-medium text-slate-700 mb-1 block">Nombre <span style="color:#B02A2A;">*</span></label>
+              <input required type="text" id="nc-nombre" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm">
+            </div>
+            <div>
+              <label class="text-sm font-medium text-slate-700 mb-1 block">Email <span style="color:#B02A2A;">*</span></label>
+              <input required type="email" id="nc-email" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm">
+            </div>
+            <div>
+              <label class="text-sm font-medium text-slate-700 mb-1 block">Empresa</label>
+              <input type="text" id="nc-empresa" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-medium text-slate-700 mb-1 block">Teléfono</label>
+                <input type="text" id="nc-telefono" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm">
+              </div>
+              <div>
+                <label class="text-sm font-medium text-slate-700 mb-1 block">% Descuento</label>
+                <input type="number" id="nc-descuento" value="0" min="0" max="100" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm">
+              </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+              <button type="button" id="btn-cancel-new-client" class="btn-press px-4 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">Cancelar</button>
+              <button type="submit" class="btn-press px-4 py-2.5 rounded-lg text-sm font-semibold text-white" style="background: var(--navy);">Guardar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- STEP 2: PRODUCTOS -->
+      <div id="step-2" class="step-panel hidden">
+        <div class="flex">
+          <!-- filtros -->
+          <aside class="w-64 shrink-0 bg-white border-r border-slate-200 p-5 space-y-5">
+            <div>
+              <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Buscar</label>
+              <input type="text" placeholder="Nombre o código..." class="w-full mt-1.5 px-3 py-2 rounded-lg border border-slate-200 text-sm">
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Categoría</label>
+              <select class="w-full mt-1.5 px-3 py-2 rounded-lg border border-slate-200 text-sm"><option>Todas</option><option>Gorras</option><option>Oficina</option></select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Proveedor</label>
+              <select class="w-full mt-1.5 px-3 py-2 rounded-lg border border-slate-200 text-sm"><option>Todos</option><option>4Promotional</option><option>Promo Opción</option></select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Colores</label>
+              <div class="flex flex-wrap gap-2">
+                <span class="w-6 h-6 rounded-full border-2 border-white ring-1 ring-slate-200 cursor-pointer" style="background:#2C4A8C;"></span>
+                <span class="w-6 h-6 rounded-full border-2 border-white ring-1 ring-slate-200 cursor-pointer" style="background:#B02A2A;"></span>
+                <span class="w-6 h-6 rounded-full border-2 border-white ring-1 ring-slate-200 cursor-pointer" style="background:#1A1A1A;"></span>
+                <span class="w-6 h-6 rounded-full border-2 border-white ring-1 ring-slate-200 cursor-pointer" style="background:#E86A1C;"></span>
+                <span class="w-6 h-6 rounded-full border-2 border-white ring-1 ring-slate-200 cursor-pointer" style="background:#1E8E5A;"></span>
+              </div>
+            </div>
+          </aside>
+
+          <!-- grid -->
+          <div class="flex-1 p-6">
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-4" id="product-grid">
+              <div class="prod-card bg-white rounded-xl border border-slate-200 overflow-hidden" data-name="Gorra Sándwich" data-code="GSP-002" data-price="59.07">
+                <div class="swatch-tile aspect-[4/3] flex items-center justify-center" style="--tile-a:#1F3568; --tile-b:#17264A;">
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"><path d="M19.8 8.3 12 3 4.2 8.3v7.4L12 21l7.8-5.3z"/></svg>
+                </div>
+                <div class="p-3.5">
+                  <div class="font-semibold text-sm text-slate-800">Gorra Sándwich</div>
+                  <div class="text-xs text-slate-400 mb-2">GSP-002</div>
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-900 tabular-nums text-sm">$59.07</span>
+                    <button class="add-product btn-press px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style="background: var(--navy);">Agregar</button>
+                  </div>
+                </div>
+              </div>
+              <div class="prod-card bg-white rounded-xl border border-slate-200 overflow-hidden" data-name="Libreta Ejecutiva" data-code="PRM-06802" data-price="121.80">
+                <div class="swatch-tile aspect-[4/3] flex items-center justify-center" style="--tile-a:#E4C888; --tile-b:#C9A15A;">
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 15l4-4 4 4 4-6 4 6"/></svg>
+                </div>
+                <div class="p-3.5">
+                  <div class="font-semibold text-sm text-slate-800">Libreta Ejecutiva</div>
+                  <div class="text-xs text-slate-400 mb-2">PRM-06802</div>
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-900 tabular-nums text-sm">$121.80</span>
+                    <button class="add-product btn-press px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style="background: var(--navy);">Agregar</button>
+                  </div>
+                </div>
+              </div>
+              <div class="prod-card bg-white rounded-xl border border-slate-200 overflow-hidden" data-name="Llavero Metálico" data-code="M-7988" data-price="44.95">
+                <div class="swatch-tile aspect-[4/3] flex items-center justify-center" style="--tile-a:#8A94A6; --tile-b:#5C6577;">
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                </div>
+                <div class="p-3.5">
+                  <div class="font-semibold text-sm text-slate-800">Llavero Metálico</div>
+                  <div class="text-xs text-slate-400 mb-2">M-7988</div>
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-900 tabular-nums text-sm">$44.95</span>
+                    <button class="add-product btn-press px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style="background: var(--navy);">Agregar</button>
+                  </div>
+                </div>
+              </div>
+              <div class="prod-card bg-white rounded-xl border border-slate-200 overflow-hidden" data-name="Termo Acero 500ml" data-code="COOL-001" data-price="74.53">
+                <div class="swatch-tile aspect-[4/3] flex items-center justify-center" style="--tile-a:#2E7D5B; --tile-b:#1E5C42;">
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+                </div>
+                <div class="p-3.5">
+                  <div class="font-semibold text-sm text-slate-800">Termo Acero 500ml</div>
+                  <div class="text-xs text-slate-400 mb-2">COOL-001</div>
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-900 tabular-nums text-sm">$74.53</span>
+                    <button class="add-product btn-press px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style="background: var(--navy);">Agregar</button>
+                  </div>
+                </div>
+              </div>
+              <div class="prod-card bg-white rounded-xl border border-slate-200 overflow-hidden" data-name="Gorra Trucker" data-code="CAP-004" data-price="51.33">
+                <div class="swatch-tile aspect-[4/3] flex items-center justify-center" style="--tile-a:#B02A2A; --tile-b:#7A1E1E;">
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"><path d="M19.8 8.3 12 3 4.2 8.3v7.4L12 21l7.8-5.3z"/></svg>
+                </div>
+                <div class="p-3.5">
+                  <div class="font-semibold text-sm text-slate-800">Gorra Trucker</div>
+                  <div class="text-xs text-slate-400 mb-2">CAP-004</div>
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-900 tabular-nums text-sm">$51.33</span>
+                    <button class="add-product btn-press px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style="background: var(--navy);">Agregar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between mt-8 pt-6 border-t border-slate-200">
+              <button id="btn-to-step1" class="btn-press px-5 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">← Anterior</button>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-slate-500"><span id="cart-count">0</span> producto(s) agregado(s)</span>
+                <button id="btn-to-step3" class="btn-press px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style="background: var(--navy);">Siguiente →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: RESUMEN -->
+      <div id="step-3" class="step-panel hidden p-8 max-w-4xl mx-auto space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 p-5">
+          <label class="text-sm font-semibold text-slate-700 mb-2 block">Nota de cotización</label>
+          <textarea rows="3" placeholder="Escribe una nota para tu cliente..." class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm resize-none"></textarea>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-100">
+            <h2 class="font-semibold text-slate-800">Productos</h2>
+          </div>
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-slate-400 text-xs uppercase tracking-wide">
+                <th class="px-5 py-3 font-medium">Producto</th>
+                <th class="px-5 py-3 font-medium">Cantidad</th>
+                <th class="px-5 py-3 font-medium">Impresión</th>
+                <th class="px-5 py-3 font-medium text-right">Subtotal</th>
+                <th class="px-5 py-3"></th>
+              </tr>
+            </thead>
+            <tbody id="cart-table-body">
+              <tr><td colspan="5" class="px-5 py-8 text-center text-slate-400 text-sm">Regresa al paso 2 y agrega productos para verlos aquí.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-xl border border-slate-200 p-5">
+            <h2 class="font-semibold text-slate-800 mb-3">Servicios adicionales</h2>
+            <button class="btn-press w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold" style="background: var(--gold-soft); color:#A8823F;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              Añadir servicio
+            </button>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-2">
+            <div class="flex justify-between text-sm"><span class="text-slate-500">Subtotal</span><span class="font-semibold tabular-nums" id="summary-subtotal">$0.00</span></div>
+            <div class="flex justify-between text-sm"><span class="text-slate-500">IVA (16%)</span><span class="font-semibold tabular-nums" id="summary-iva">$0.00</span></div>
+            <div class="flex justify-between pt-2 border-t border-slate-100"><span class="font-bold text-slate-800">Total</span><span class="font-bold text-lg tabular-nums" style="color: var(--navy);" id="summary-total">$0.00</span></div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <button id="btn-to-step2b" class="btn-press px-5 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">← Anterior</button>
+          <div class="flex gap-3">
+            <button class="btn-press px-5 py-2.5 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">Guardar</button>
+            <button class="btn-press px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style="background: var(--gold);">Guardar y enviar</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const cart = [];
+  let selectedClient = null;
+
+  function fmt(n){ return '$' + n.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+  function goToStep(n){
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'));
+    document.getElementById('step-' + n).classList.remove('hidden');
+    document.querySelectorAll('.step-dot-group').forEach(g => {
+      const step = parseInt(g.dataset.step);
+      const dot = g.querySelector('.step-dot');
+      const label = g.querySelector('span:last-child');
+      if(step < n){
+        dot.style.background = 'var(--gold)'; dot.style.borderColor='transparent'; dot.style.color='white'; dot.innerHTML='✓';
+        label.classList.remove('text-slate-400'); label.classList.add('text-slate-800','font-semibold');
+      } else if(step === n){
+        dot.style.background = 'var(--navy)'; dot.style.borderColor='transparent'; dot.style.color='white'; dot.textContent=step;
+        label.classList.remove('text-slate-400'); label.classList.add('text-slate-800','font-semibold');
+      } else {
+        dot.style.background = 'transparent'; dot.style.borderColor='#CBD5E1'; dot.style.color='#94A3B8'; dot.textContent=step;
+        label.classList.add('text-slate-400'); label.classList.remove('text-slate-800','font-semibold');
+      }
+    });
+  }
+
+  function selectClient(row){
+    document.querySelectorAll('.client-row').forEach(r => { r.classList.remove('selected'); r.querySelector('.check-icon').setAttribute('stroke','#CBD5E1'); });
+    row.classList.add('selected');
+    row.querySelector('.check-icon').setAttribute('stroke', 'var(--gold)');
+    selectedClient = row.dataset.name;
+    const btn = document.getElementById('btn-to-step2');
+    btn.disabled = false; btn.classList.remove('opacity-40','cursor-not-allowed');
+  }
+
+  function bindClientRow(row){
+    row.addEventListener('click', () => selectClient(row));
+  }
+
+  document.querySelectorAll('.client-row').forEach(bindClientRow);
+
+  // --- Modal: Nuevo cliente ---
+  const modal = document.getElementById('modal-new-client');
+  function openModal(){
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => modal.classList.add('open'));
+  }
+  function closeModal(){
+    modal.classList.remove('open');
+    setTimeout(() => modal.classList.add('hidden'), 200);
+  }
+  document.getElementById('btn-open-new-client').addEventListener('click', openModal);
+  document.getElementById('btn-close-new-client').addEventListener('click', closeModal);
+  document.getElementById('btn-cancel-new-client').addEventListener('click', closeModal);
+  document.getElementById('modal-backdrop').addEventListener('click', closeModal);
+
+  document.getElementById('form-new-client').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nombre = document.getElementById('nc-nombre').value.trim();
+    const email = document.getElementById('nc-email').value.trim();
+    if(!nombre || !email) return;
+
+    const row = document.createElement('div');
+    row.className = 'client-row client-row-enter flex items-center justify-between px-5 py-4 border-l-4 border-transparent';
+    row.dataset.name = nombre;
+    row.dataset.email = email;
+    row.innerHTML = `
+      <div>
+        <div class="font-semibold text-sm text-slate-800">${nombre}</div>
+        <div class="text-xs text-slate-400">${email}</div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2" class="check-icon"><path d="M20 6L9 17l-5-5"/></svg>
+    `;
+    bindClientRow(row);
+    document.getElementById('client-list').prepend(row);
+    selectClient(row);
+
+    e.target.reset();
+    document.getElementById('nc-descuento').value = 0;
+    closeModal();
+  });
+
+  document.getElementById('btn-to-step2').addEventListener('click', () => { if(!document.getElementById('btn-to-step2').disabled) goToStep(2); });
+  document.getElementById('btn-to-step1').addEventListener('click', () => goToStep(1));
+  document.getElementById('btn-to-step3').addEventListener('click', () => { renderCart(); goToStep(3); });
+  document.getElementById('btn-to-step2b').addEventListener('click', () => goToStep(2));
+
+  document.querySelectorAll('.add-product').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.prod-card');
+      cart.push({ name: card.dataset.name, code: card.dataset.code, price: parseFloat(card.dataset.price), qty: 1 });
+      document.getElementById('cart-count').textContent = cart.length;
+      btn.textContent = 'Agregado ✓';
+      btn.style.background = '#1E8E5A';
+      setTimeout(() => { btn.textContent = 'Agregar'; btn.style.background = 'var(--navy)'; }, 900);
+      updateTotals();
+    });
+  });
+
+  function renderCart(){
+    const body = document.getElementById('cart-table-body');
+    if(cart.length === 0){
+      body.innerHTML = '<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400 text-sm">Regresa al paso 2 y agrega productos para verlos aquí.</td></tr>';
+      return;
+    }
+    body.innerHTML = cart.map((item, i) => `
+      <tr class="border-t border-slate-100">
+        <td class="px-5 py-3.5">
+          <div class="font-medium text-slate-800">${item.name}</div>
+          <div class="text-xs text-slate-400">${item.code}</div>
+        </td>
+        <td class="px-5 py-3.5"><input type="number" value="${item.qty}" min="1" class="w-16 px-2 py-1.5 rounded-lg border border-slate-200 text-sm" onchange="updateQty(${i}, this.value)"></td>
+        <td class="px-5 py-3.5">
+          <select class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-sm">
+            <option>Sin técnica</option><option>Bordado</option><option>Serigrafía</option><option>Otro</option>
+          </select>
+        </td>
+        <td class="px-5 py-3.5 text-right font-semibold tabular-nums text-slate-800">${fmt(item.price * item.qty)}</td>
+        <td class="px-5 py-3.5 text-right">
+          <button class="row-remove text-slate-400 hover:text-red-500 transition-colors" onclick="removeItem(${i})">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function updateQty(i, val){ cart[i].qty = Math.max(1, parseInt(val)||1); renderCart(); updateTotals(); }
+  function removeItem(i){ cart.splice(i,1); document.getElementById('cart-count').textContent = cart.length; renderCart(); updateTotals(); }
+
+  function updateTotals(){
+    const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+    const iva = subtotal * 0.16;
+    const total = subtotal + iva;
+    document.getElementById('total-display').textContent = fmt(total);
+    document.getElementById('summary-subtotal').textContent = fmt(subtotal);
+    document.getElementById('summary-iva').textContent = fmt(iva);
+    document.getElementById('summary-total').textContent = fmt(total);
+  }
+</script>
+
+</body>
+</html>
