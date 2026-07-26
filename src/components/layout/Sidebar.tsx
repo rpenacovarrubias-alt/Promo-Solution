@@ -16,13 +16,17 @@ import {
   Globe,
   FileStack,
   ShieldCheck,
+  ExternalLink,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+const SITIO_PUBLICO_URL = 'https://promosolution-web.vercel.app'
 
 interface NavItem {
   to: string
   icon: React.ElementType
   label: string
+  external?: boolean
 }
 
 interface NavGroup {
@@ -37,6 +41,7 @@ const navGroups: NavGroup[] = [
     title: 'Principal',
     items: [
       { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { to: SITIO_PUBLICO_URL, icon: ExternalLink, label: 'Sitio Público', external: true },
     ],
   },
   {
@@ -109,7 +114,21 @@ function NavGroup({ group }: { group: NavGroup }) {
 
       {open && (
         <div>
-          {group.items.map(({ to, icon: Icon, label }) => {
+          {group.items.map(({ to, icon: Icon, label, external }) => {
+            if (external) {
+              return (
+                <a
+                  key={to}
+                  href={to}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-6 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {label}
+                </a>
+              )
+            }
             const isActive =
               to === '/dashboard'
                 ? location.pathname === '/dashboard'

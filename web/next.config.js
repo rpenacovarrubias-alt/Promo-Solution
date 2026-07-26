@@ -35,6 +35,12 @@ const nextConfig = {
         hostname: 'admin.promosolution.com.mx',
         pathname: '/**',
       },
+      // Solo para los productos TEST — quitar cuando el catálogo real esté conectado
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+        pathname: '/**',
+      },
     ],
   },
 
