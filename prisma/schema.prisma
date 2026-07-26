@@ -282,6 +282,8 @@ enum Channel {
   EMAIL
   WHATSAPP
   TELEGRAM
+  FACEBOOK
+  INSTAGRAM
 
   @@schema("promo_panel")
 }
@@ -298,6 +300,28 @@ model QuoteItem {
   unitPrice Decimal  @db.Decimal(10, 2)
   markup    Decimal  @db.Decimal(5, 2)
   subtotal  Decimal  @db.Decimal(10, 2)
+
+  @@schema("promo_panel")
+}
+
+// ─── Julio (agente de ventas IA) ───────────────────────────────────────────────
+
+model JulioMessage {
+  id        String        @id @default(cuid())
+  sessionId String        // identidad de canal (ej. chat.id de Telegram) — no ligado a Client hasta que se cotiza
+  channel   Channel
+  role      JulioRole
+  content   String
+  createdAt DateTime      @default(now())
+
+  @@index([sessionId, createdAt])
+  @@schema("promo_panel")
+}
+
+enum JulioRole {
+  USER
+  ASSISTANT
+  TOOL
 
   @@schema("promo_panel")
 }

@@ -31,6 +31,9 @@ import publicCategoriesRouter   from './routes/public/categories.js'
 import publicProvidersRouter    from './routes/public/providers.js'
 import publicQuotesRouter       from './routes/public/quotes.js'
 
+// ── Webhooks (Julio — agente de ventas IA) ───────────────────────────────────
+import telegramWebhookRouter    from './routes/webhooks/telegram.js'
+
 // ────────────────────────────────────────────────────────────────────────────
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -56,6 +59,9 @@ app.use('/api/public/products',   requireApiKey, publicProductsRouter)
 app.use('/api/public/categories', requireApiKey, publicCategoriesRouter)
 app.use('/api/public/providers',  requireApiKey, publicProvidersRouter)
 app.use('/api/public/quotes',     requireApiKey, publicQuotesRouter)
+
+// ── Webhooks — sin X-API-Key, se autentican con su propio secret de plataforma ─
+app.use('/api/webhooks/telegram', telegramWebhookRouter)
 
 // ── Rutas API admin ───────────────────────────────────────────────────────────
 app.use('/api/dashboard',   dashboardRouter)
