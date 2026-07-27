@@ -131,6 +131,19 @@ router.get('/:id/excel', async (req, res) => {
     const quote = await loadQuoteFull(req.params.id)
     if (!quote) return res.status(404).json({ error: 'Quote not found' })
 
+    const headerAoa = [
+      ['Folio', `COT-${quote.id.slice(-6).toUpperCase()}`],
+      ['Fecha', new Date(quote.createdAt).toLocaleDateString('es-MX')],
+      ['Estado', quote.status],
+      ['Cliente', quote.client.name],
+      ['Empresa', quote.client.company || ''],
+      ['Email', quote.client.email],
+      ['Teléfono', quote.client.phone || ''],
+      ['Vendedor', quote.seller?.name || 'N/A'],
+      ['Notas', quote.notes || ''],
+      [],
+    ]
+
     const rows = quote.items.map((item) => ({
       Código: itemCode(item),
       Concepto: itemName(item),
@@ -143,7 +156,8 @@ router.get('/:id/excel', async (req, res) => {
     rows.push({ Concepto: 'IVA (16%)', Subtotal: parseFloat(quote.iva) })
     rows.push({ Concepto: 'Total', Subtotal: parseFloat(quote.total) })
 
-    const sheet = XLSX.utils.json_to_sheet(rows)
+    const sheet = XLSX.utils.aoa_to_sheet(headerAoa)
+    XLSX.utils.sheet_add_json(sheet, rows, { origin: headerAoa.length, skipHeader: false })
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, sheet, 'Cotización')
     const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
