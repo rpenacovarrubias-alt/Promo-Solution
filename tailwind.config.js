@@ -17,7 +17,20 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+      },
       colors: {
+        navy: {
+          DEFAULT: '#17264A',
+          deep: '#101B34',
+          mid: '#223868',
+        },
+        gold: {
+          DEFAULT: '#C9A15A',
+          light: '#E4C888',
+          foreground: '#101B34',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',

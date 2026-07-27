@@ -359,8 +359,8 @@ export default function Proveedores() {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-green-100 p-2">
-                  <Package className="h-5 w-5 text-green-700" />
+                <div className="rounded-lg bg-gold/15 p-2">
+                  <Package className="h-5 w-5 text-gold" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{totalProducts.toLocaleString()}</p>
@@ -372,8 +372,8 @@ export default function Proveedores() {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-blue-100 p-2">
-                  <CheckCircle2 className="h-5 w-5 text-blue-700" />
+                <div className="rounded-lg bg-navy/10 p-2">
+                  <CheckCircle2 className="h-5 w-5 text-navy" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{syncedCount}</p>

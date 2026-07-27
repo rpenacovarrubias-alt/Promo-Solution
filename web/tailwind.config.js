@@ -7,33 +7,35 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Paleta aprobada en design-demos/dashboard/*.html — debe coincidir
+        // exacto con la del dashboard (src/tailwind.config.js: navy/gold).
         navy: {
-          50:  '#e8edf4',
-          100: '#c5d0e2',
-          200: '#9fb0ce',
-          300: '#7891ba',
-          400: '#587bab',
-          500: '#3a659c',
-          600: '#2d5690',
-          700: '#1e3a5f',  // PRIMARY — Navy principal
-          800: '#162d4b',
-          900: '#0e1e32',
+          50:  '#eef1f8',
+          100: '#d8e0ee',
+          200: '#b5c2dc',
+          300: '#8a9cc0',
+          400: '#5a70a0',
+          500: '#3a5080',
+          600: '#223868',  // navy-mid del prototipo
+          700: '#17264A',  // PRIMARY — Navy principal (aprobado)
+          800: '#142244',
+          900: '#101B34',  // navy-deep del prototipo
         },
         gold: {
           50:  '#fdf6e8',
-          100: '#fae8c0',
-          200: '#f5d48f',
-          300: '#efbf5e',
-          400: '#e8aa38',
-          500: '#D4A03A',  // PRIMARY — Gold principal
-          600: '#b8882e',
-          700: '#9a7024',
-          800: '#7c581b',
-          900: '#5e4012',
+          100: '#f8f0de',
+          200: '#f3e6c7',
+          300: '#edd9ac',
+          400: '#e4c888',  // gold-light del prototipo
+          500: '#C9A15A',  // PRIMARY — Gold principal (aprobado)
+          600: '#a8823f',
+          700: '#8a6a32',
+          800: '#6b5126',
+          900: '#4d3a1a',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
       },
     },
   },

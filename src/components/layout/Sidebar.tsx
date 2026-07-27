@@ -13,7 +13,6 @@ import {
   FolderOpen,
   ChevronDown,
   UserCog,
-  Globe,
   FileStack,
   ShieldCheck,
   ExternalLink,
@@ -99,7 +98,7 @@ function NavGroup({ group }: { group: NavGroup }) {
       {group.collapsible ? (
         <button
           onClick={() => setOpen((o) => !o)}
-          className="flex w-full items-center justify-between px-6 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+          className="flex w-full items-center justify-between px-6 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/40 hover:text-white transition-colors"
         >
           {group.title}
           <ChevronDown
@@ -107,13 +106,13 @@ function NavGroup({ group }: { group: NavGroup }) {
           />
         </button>
       ) : (
-        <p className="mb-1 px-6 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <p className="mb-1 px-6 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/40">
           {group.title}
         </p>
       )}
 
       {open && (
-        <div>
+        <div className="space-y-1 px-3">
           {group.items.map(({ to, icon: Icon, label, external }) => {
             if (external) {
               return (
@@ -122,9 +121,9 @@ function NavGroup({ group }: { group: NavGroup }) {
                   href={to}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-6 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/75 transition-colors duration-150 hover:bg-white/[0.06]"
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
+                  <Icon className="h-[18px] w-[18px] shrink-0" />
                   {label}
                 </a>
               )
@@ -138,13 +137,19 @@ function NavGroup({ group }: { group: NavGroup }) {
                 key={to}
                 to={to}
                 className={cn(
-                  'flex items-center gap-3 px-6 py-2.5 text-sm font-medium transition-colors',
+                  'relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150',
                   isActive
-                    ? 'bg-primary/10 text-primary border-r-2 border-primary'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                    ? 'bg-white/[0.07] text-white'
+                    : 'text-white/75 hover:bg-white/[0.06]',
                 )}
               >
-                <Icon className="h-4 w-4 shrink-0" />
+                <span
+                  className={cn(
+                    'absolute bottom-1.5 left-0 top-1.5 w-[3px] rounded-full bg-gold transition-transform duration-200 ease-out',
+                    isActive ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0',
+                  )}
+                />
+                <Icon className="h-[18px] w-[18px] shrink-0" />
                 {label}
               </NavLink>
             )
@@ -157,15 +162,16 @@ function NavGroup({ group }: { group: NavGroup }) {
 
 export default function Sidebar() {
   return (
-    <aside className="flex h-full w-64 flex-col border-r bg-card">
+    <aside className="flex h-full w-64 flex-col bg-navy">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b px-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-          <Globe className="h-4 w-4 text-primary-foreground" />
-        </div>
+      <div className="flex h-16 items-center gap-3 border-b border-white/[0.08] px-5">
+        <svg width="26" height="26" viewBox="0 0 30 30" fill="none">
+          <path d="M6 3h13a8 8 0 0 1 0 16h-8v8H6V3z" fill="white" />
+          <path d="M11 8h7a3.5 3.5 0 0 1 0 7h-7V8z" fill="#17264A" />
+        </svg>
         <div className="leading-tight">
-          <p className="text-sm font-bold tracking-wide">PROMO</p>
-          <p className="text-[10px] font-semibold text-muted-foreground tracking-widest uppercase">
+          <p className="text-sm font-bold tracking-wide text-white">PROMO</p>
+          <p className="text-[10px] font-semibold tracking-[0.2em] text-gold uppercase">
             Solution
           </p>
         </div>
@@ -179,8 +185,8 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t px-5 py-3">
-        <p className="text-[10px] text-muted-foreground">v1.0.0 · Promo Solution</p>
+      <div className="border-t border-white/[0.08] px-6 py-3">
+        <p className="text-[10px] text-white/35">v1.0.0 · Promo Solution</p>
       </div>
     </aside>
   )

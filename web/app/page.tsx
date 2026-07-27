@@ -59,7 +59,7 @@ export default async function HomePage() {
           {CATEGORIAS_HERO.map(cat => (
             <Link key={cat.nombre}
               href={`/catalogo?q=${encodeURIComponent(cat.nombre)}`}
-              className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-gray-100
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-gold-100
                          hover:border-navy-200 hover:bg-navy-50 transition-all text-center group">
               <span className="text-2xl">{cat.emoji}</span>
               <span className="text-xs font-medium text-gray-700 group-hover:text-navy-700">
