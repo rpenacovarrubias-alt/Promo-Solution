@@ -17,6 +17,20 @@ function getAdapter(slug) {
   }
 }
 
+const categoryIdCache = new Map()
+
+async function resolveCategoryId(rawCategory) {
+  if (!rawCategory) return null
+  if (categoryIdCache.has(rawCategory)) return categoryIdCache.get(rawCategory)
+  const category = await prisma.category.upsert({
+    where: { name: rawCategory },
+    update: {},
+    create: { name: rawCategory },
+  })
+  categoryIdCache.set(rawCategory, category.id)
+  return category.id
+}
+
 async function upsertProducts(providerId, normalizedProducts) {
   let added = 0, updated = 0
 
@@ -25,7 +39,8 @@ async function upsertProducts(providerId, normalizedProducts) {
       where: { providerId_externalId: { providerId, externalId: p.externalId } },
     })
 
-    const data = { name: p.name, description: p.description, basePrice: p.basePrice, stock: p.stock, isActive: p.isActive ?? true }
+    const categoryId = await resolveCategoryId(p.rawCategory)
+    const data = { name: p.name, description: p.description, categoryId, basePrice: p.basePrice, stock: p.stock, isActive: p.isActive ?? true }
 
     if (existing) {
       await prisma.product.update({ where: { id: existing.id }, data })
@@ -41,6 +56,20 @@ async function upsertProducts(providerId, normalizedProducts) {
 
   return { added, updated }
 }
+
+router.get('/', async (req, res) => {
+  try {
+    const logs = await prisma.syncLog.findMany({
+      include: { provider: { select: { name: true } } },
+      orderBy: { startedAt: 'desc' },
+      take: 20,
+    })
+    return res.json(logs)
+  } catch (e) {
+    console.error('[sync GET]', e)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
 
 router.post('/', async (req, res) => {
   const { providerId, action = 'sync' } = req.body

@@ -1,10 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
-import { RefreshCw, Package, Clock } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import { formatDate } from '@/lib/utils'
 
 interface Provider {
@@ -12,30 +9,102 @@ interface Provider {
   name: string
   logo?: string
   isActive: boolean
-  _count?: { products: number }
-  updatedAt: string
+  totalProducts: number
+  lastSync: string | null
+  syncStatus: 'IDLE' | 'SYNCING' | 'SUCCESS' | 'ERROR'
+  syncMessage?: string | null
+}
+
+interface SyncLog {
+  id: string
+  provider: { name: string }
+  status: 'IDLE' | 'SYNCING' | 'SUCCESS' | 'ERROR'
+  message?: string | null
+  productsAdded: number
+  productsUpdated: number
+  productsTotal: number
+  startedAt: string
+}
+
+// Misma paleta usada en categorias.html / colecciones.html — badges consistentes en todo el dashboard.
+const PALETTE = ['#17264A', '#C9A15A', '#5C6577', '#B02A2A', '#1E8E5A', '#2C4A8C']
+function colorFor(name: string) {
+  const hash = [...name].reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  return PALETTE[hash % PALETTE.length]
+}
+
+function StatusBadge({ status, isSyncing }: { status: Provider['syncStatus']; isSyncing: boolean }) {
+  if (isSyncing || status === 'SYNCING') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: '#A8823F' }}>
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full" style={{ background: '#C9A15A' }} />
+        Sincronizando...
+      </span>
+    )
+  }
+  if (status === 'ERROR') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: '#B02A2A' }}>
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#B02A2A' }} />
+        Error
+      </span>
+    )
+  }
+  if (status === 'SUCCESS') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: '#1E8E5A' }}>
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#1E8E5A' }} />
+        Sincronizado
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+      <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
+      Sin sincronizar
+    </span>
+  )
+}
+
+function ResultBadge({ status }: { status: SyncLog['status'] }) {
+  if (status === 'SUCCESS')
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: '#1E8E5A' }}>
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#1E8E5A' }} />
+        Exitoso
+      </span>
+    )
+  if (status === 'ERROR')
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: '#B02A2A' }}>
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#B02A2A' }} />
+        Error
+      </span>
+    )
+  return <span className="text-xs font-medium text-muted-foreground">En curso</span>
 }
 
 export default function Catalogos() {
   const [providers, setProviders] = useState<Provider[]>([])
+  const [logs, setLogs] = useState<SyncLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [syncingIds, setSyncingIds] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    const fetchProviders = async () => {
-      try {
-        const res = await fetch('/api/providers')
-        if (!res.ok) throw new Error()
-        const data = await res.json()
-        setProviders(data)
-      } catch {
-        toast.error('Error al cargar proveedores')
-      } finally {
-        setIsLoading(false)
-      }
+  const fetchAll = useCallback(async () => {
+    try {
+      const [provRes, logsRes] = await Promise.all([fetch('/api/providers'), fetch('/api/sync')])
+      if (provRes.ok) setProviders(await provRes.json())
+      if (logsRes.ok) setLogs(await logsRes.json())
+    } catch {
+      toast.error('Error al cargar catálogos')
+    } finally {
+      setIsLoading(false)
     }
-    fetchProviders()
   }, [])
+
+  useEffect(() => {
+    fetchAll()
+  }, [fetchAll])
 
   const handleSync = async (providerId: string) => {
     setSyncingIds((prev) => new Set(prev).add(providerId))
@@ -45,14 +114,12 @@ export default function Catalogos() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId }),
       })
-      if (!res.ok) throw new Error()
       const data = await res.json()
-      toast.success(`Sincronización completada: ${data.synced ?? 0} productos actualizados`)
-      // Refresh providers
-      const provRes = await fetch('/api/providers')
-      if (provRes.ok) setProviders(await provRes.json())
-    } catch {
-      toast.error('Error al sincronizar catálogo')
+      if (!res.ok) throw new Error(data.error)
+      toast.success(`Sincronización completada: ${data.productsAdded} nuevos, ${data.productsUpdated} actualizados`)
+      await fetchAll()
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al sincronizar catálogo')
     } finally {
       setSyncingIds((prev) => {
         const next = new Set(prev)
@@ -62,108 +129,144 @@ export default function Catalogos() {
     }
   }
 
+  const handleSyncAll = () => {
+    providers.filter((p) => p.isActive).forEach((p) => handleSync(p.id))
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Catálogos</h1>
-          <p className="text-muted-foreground">Sincroniza los catálogos de tus proveedores</p>
+          <p className="text-muted-foreground">Sincroniza los catálogos de tus proveedores conectados</p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-4 w-24 mt-1" />
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-9 w-full" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <div className="h-64 animate-pulse rounded-xl border bg-muted/30" />
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Catálogos</h1>
-        <p className="text-muted-foreground">Sincroniza los catálogos de tus proveedores</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Catálogos</h1>
+          <p className="text-muted-foreground">Sincroniza los catálogos de tus proveedores conectados</p>
+        </div>
+        <Button onClick={handleSyncAll} disabled={syncingIds.size > 0}>
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Sincronizar todos
+        </Button>
       </div>
 
       {providers.length === 0 ? (
-        <Card className="py-16 text-center">
-          <CardContent>
-            <p className="text-muted-foreground">
-              No hay proveedores configurados. Agrega uno en la sección de{' '}
-              <a href="/proveedores" className="text-primary underline">
-                Proveedores
-              </a>
-              .
-            </p>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border bg-card py-16 text-center text-sm text-muted-foreground">
+          No hay proveedores configurados. Agrega uno en la sección de{' '}
+          <a href="/proveedores" className="text-navy underline">
+            Proveedores
+          </a>
+          .
+        </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {providers.map((p) => {
-            const isSyncing = syncingIds.has(p.id)
-            return (
-              <Card key={p.id} className={!p.isActive ? 'opacity-60' : ''}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {p.logo ? (
-                        <img
-                          src={p.logo}
-                          alt={p.name}
-                          className="h-10 w-10 rounded-md object-contain"
-                        />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10">
-                          <Package className="h-5 w-5 text-primary" />
-                        </div>
-                      )}
-                      <div>
-                        <CardTitle className="text-base">{p.name}</CardTitle>
-                        <Badge
-                          variant={p.isActive ? 'success' : 'secondary'}
-                          className="mt-1 text-[10px]"
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-5 py-3 font-medium">Proveedor</th>
+                <th className="px-5 py-3 font-medium">Estado</th>
+                <th className="px-5 py-3 text-right font-medium">Productos</th>
+                <th className="px-5 py-3 font-medium">Última sincronización</th>
+                <th className="w-40 px-5 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {providers.map((p) => {
+                const isSyncing = syncingIds.has(p.id)
+                return (
+                  <tr key={p.id} className={cnRow(p.isActive)}>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
+                          style={{ background: colorFor(p.name) }}
                         >
-                          {p.isActive ? 'Activo' : 'Inactivo'}
-                        </Badge>
+                          {p.name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <span className="font-medium">{p.name}</span>
                       </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 text-muted-foreground">
-                      <Package className="h-3.5 w-3.5" />
-                      {p._count?.products ?? 0} productos
-                    </span>
-                    <span className="flex items-center gap-1.5 text-muted-foreground">
-                      <Clock className="h-3.5 w-3.5" />
-                      {formatDate(p.updatedAt)}
-                    </span>
-                  </div>
-                  <Button
-                    className="w-full"
-                    variant="outline"
-                    disabled={isSyncing || !p.isActive}
-                    onClick={() => handleSync(p.id)}
-                  >
-                    <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                    {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
-                  </Button>
-                </CardContent>
-              </Card>
-            )
-          })}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <StatusBadge status={p.syncStatus} isSyncing={isSyncing} />
+                    </td>
+                    <td className="px-5 py-3.5 text-right tabular-nums text-muted-foreground">
+                      {p.totalProducts.toLocaleString('es-MX')}
+                    </td>
+                    <td className="px-5 py-3.5 text-muted-foreground">
+                      {p.lastSync ? formatDate(p.lastSync) : '—'}
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isSyncing || !p.isActive}
+                        onClick={() => handleSync(p.id)}
+                      >
+                        <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                        Sincronizar
+                      </Button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       )}
+
+      <div>
+        <h2 className="mb-3 font-semibold text-foreground">Historial de sincronización</h2>
+        <div className="overflow-hidden rounded-xl border bg-card">
+          {logs.length === 0 ? (
+            <p className="py-10 text-center text-sm text-muted-foreground">Aún no hay sincronizaciones registradas.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="px-5 py-3 font-medium">Fecha</th>
+                  <th className="px-5 py-3 font-medium">Proveedor</th>
+                  <th className="px-5 py-3 font-medium">Resultado</th>
+                  <th className="px-5 py-3 text-right font-medium">Nuevos</th>
+                  <th className="px-5 py-3 text-right font-medium">Actualizados</th>
+                  <th className="px-5 py-3 text-right font-medium">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log) => (
+                  <tr key={log.id} className="border-t">
+                    <td className="px-5 py-3.5 text-muted-foreground">{formatDate(log.startedAt)}</td>
+                    <td className="px-5 py-3.5 font-medium">{log.provider.name}</td>
+                    <td className="px-5 py-3.5">
+                      <ResultBadge status={log.status} />
+                    </td>
+                    <td className="px-5 py-3.5 text-right tabular-nums text-muted-foreground">
+                      {log.status === 'ERROR' ? '—' : log.productsAdded}
+                    </td>
+                    <td className="px-5 py-3.5 text-right tabular-nums text-muted-foreground">
+                      {log.status === 'ERROR' ? '—' : log.productsUpdated}
+                    </td>
+                    <td className="px-5 py-3.5 text-right tabular-nums text-muted-foreground">
+                      {log.status === 'ERROR' ? '—' : log.productsTotal}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   )
+}
+
+function cnRow(isActive: boolean) {
+  return `border-t ${isActive ? '' : 'opacity-50'}`
 }
