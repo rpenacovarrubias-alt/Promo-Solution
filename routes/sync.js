@@ -25,7 +25,7 @@ async function upsertProducts(providerId, normalizedProducts) {
       where: { providerId_externalId: { providerId, externalId: p.externalId } },
     })
 
-    const data = { name: p.name, description: p.description, basePrice: p.basePrice, stock: p.stock, isActive: true }
+    const data = { name: p.name, description: p.description, basePrice: p.basePrice, stock: p.stock, isActive: p.isActive ?? true }
 
     if (existing) {
       await prisma.product.update({ where: { id: existing.id }, data })
