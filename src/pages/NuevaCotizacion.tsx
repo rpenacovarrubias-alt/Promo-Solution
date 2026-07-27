@@ -14,6 +14,7 @@ import {
   Mail,
   MessageCircle,
   Send,
+  UserPlus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,6 +22,13 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -83,7 +91,11 @@ interface CartItem {
   quantity: number
   markup: number
   subtotal: number
+  printTechnique: string
+  manualPrice: number | null
 }
+
+const PRINT_TECHNIQUES = ['Sin técnica', 'Estampado', 'Bordado', 'Grabado', 'Sublimación', 'Otro']
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -157,13 +169,17 @@ function Step1Cliente({
   const [clients, setClients] = useState<Client[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [newClientOpen, setNewClientOpen] = useState(false)
 
-  useEffect(() => {
+  const fetchClients = () =>
     fetch('/api/clients')
       .then((r) => r.json())
       .then(setClients)
       .catch(() => toast.error('Error al cargar clientes'))
       .finally(() => setIsLoading(false))
+
+  useEffect(() => {
+    fetchClients()
   }, [])
 
   const filtered = useMemo(
@@ -179,16 +195,30 @@ function Step1Cliente({
 
   return (
     <div className="space-y-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          className="pl-9"
-          placeholder="Buscar cliente por nombre, empresa o email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          autoFocus
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-9"
+            placeholder="Buscar cliente por nombre, empresa o email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            autoFocus
+          />
+        </div>
+        <Button type="button" variant="outline" onClick={() => setNewClientOpen(true)}>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Nuevo cliente
+        </Button>
       </div>
+      <NewClientDialog
+        open={newClientOpen}
+        onOpenChange={setNewClientOpen}
+        onCreated={(c) => {
+          setClients((prev) => [c, ...prev])
+          onSelect(c)
+        }}
+      />
 
       {isLoading ? (
         <div className="flex justify-center py-12">
@@ -233,6 +263,103 @@ function Step1Cliente({
   )
 }
 
+// ─── Modal: nuevo cliente (sin salir del wizard) ──────────────────────────────
+
+function NewClientDialog({
+  open,
+  onOpenChange,
+  onCreated,
+}: {
+  open: boolean
+  onOpenChange: (v: boolean) => void
+  onCreated: (c: Client) => void
+}) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [company, setCompany] = useState('')
+  const [markupPercent, setMarkupPercent] = useState('30')
+  const [isSaving, setIsSaving] = useState(false)
+
+  const reset = () => {
+    setName('')
+    setEmail('')
+    setPhone('')
+    setCompany('')
+    setMarkupPercent('30')
+  }
+
+  const handleCreate = async () => {
+    if (!name.trim() || !email.trim()) {
+      toast.error('Nombre y email son requeridos')
+      return
+    }
+    setIsSaving(true)
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone, company, markupPercent }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success('Cliente creado')
+      onCreated(data)
+      onOpenChange(false)
+      reset()
+    } catch (e) {
+      toast.error(e instanceof Error && e.message ? e.message : 'Error al crear cliente')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Nuevo cliente</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Nombre *</Label>
+              <Input placeholder="Juan García" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+            </div>
+            <div className="space-y-2">
+              <Label>Empresa</Label>
+              <Input placeholder="Mi Empresa S.A." value={company} onChange={(e) => setCompany(e.target.value)} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Email *</Label>
+            <Input type="email" placeholder="juan@empresa.mx" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Teléfono</Label>
+              <Input placeholder="+52 55 1234 5678" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>% Utilidad</Label>
+              <Input type="number" min="0" max="1000" step="0.5" value={markupPercent} onChange={(e) => setMarkupPercent(e.target.value)} />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => { onOpenChange(false); reset() }}>
+            Cancelar
+          </Button>
+          <Button onClick={handleCreate} disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Crear cliente
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // ─── Step 2: Agregar productos ────────────────────────────────────────────────
 
 function Step2Productos({
@@ -255,12 +382,12 @@ function Step2Productos({
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/products').then((r) => r.json()),
+      fetch('/api/products?limit=2000').then((r) => r.json()),
       fetch('/api/services').then((r) => r.json()),
       fetch('/api/providers').then((r) => r.json()),
     ])
       .then(([prods, svcs, provs]) => {
-        setProducts(prods)
+        setProducts(prods.data ?? prods)
         setServices(svcs)
         setProviders(provs)
       })
@@ -296,16 +423,19 @@ function Step2Productos({
     [services, search],
   )
 
+  const lineSubtotal = (i: CartItem) =>
+    i.manualPrice !== null ? i.manualPrice * i.quantity : calcSubtotal(i.basePrice, i.quantity, i.markup)
+
   const addProduct = (p: Product) => {
     const key = `product-${p.id}`
     const existing = cart.find((i) => i.key === key)
     if (existing) {
       onCartChange(
-        cart.map((i) =>
-          i.key === key
-            ? { ...i, quantity: i.quantity + 1, subtotal: calcSubtotal(i.basePrice, i.quantity + 1, i.markup) }
-            : i,
-        ),
+        cart.map((i) => {
+          if (i.key !== key) return i
+          const updated = { ...i, quantity: i.quantity + 1 }
+          return { ...updated, subtotal: lineSubtotal(updated) }
+        }),
       )
     } else {
       const basePrice = parseFloat(p.basePrice)
@@ -322,6 +452,8 @@ function Step2Productos({
           quantity: 1,
           markup,
           subtotal: calcSubtotal(basePrice, 1, markup),
+          printTechnique: 'Sin técnica',
+          manualPrice: null,
         },
       ])
     }
@@ -332,11 +464,11 @@ function Step2Productos({
     const existing = cart.find((i) => i.key === key)
     if (existing) {
       onCartChange(
-        cart.map((i) =>
-          i.key === key
-            ? { ...i, quantity: i.quantity + 1, subtotal: calcSubtotal(i.basePrice, i.quantity + 1, i.markup) }
-            : i,
-        ),
+        cart.map((i) => {
+          if (i.key !== key) return i
+          const updated = { ...i, quantity: i.quantity + 1 }
+          return { ...updated, subtotal: lineSubtotal(updated) }
+        }),
       )
     } else {
       const basePrice = parseFloat(s.unitPrice)
@@ -352,17 +484,23 @@ function Step2Productos({
           quantity: 1,
           markup,
           subtotal: calcSubtotal(basePrice, 1, markup),
+          printTechnique: 'Sin técnica',
+          manualPrice: null,
         },
       ])
     }
   }
 
-  const updateItem = (key: string, field: 'quantity' | 'markup', value: number) => {
+  const updateItem = (
+    key: string,
+    field: 'quantity' | 'markup' | 'printTechnique' | 'manualPrice',
+    value: number | string | null,
+  ) => {
     onCartChange(
       cart.map((i) => {
         if (i.key !== key) return i
-        const updated = { ...i, [field]: value }
-        return { ...updated, subtotal: calcSubtotal(updated.basePrice, updated.quantity, updated.markup) }
+        const updated = { ...i, [field]: value } as CartItem
+        return { ...updated, subtotal: lineSubtotal(updated) }
       }),
     )
   }
@@ -599,6 +737,22 @@ function Step2Productos({
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Técnica de impresión</Label>
+                  <Select
+                    value={item.printTechnique}
+                    onValueChange={(v) => updateItem(item.key, 'printTechnique', v)}
+                  >
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRINT_TECHNIQUES.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label className="text-[10px] text-muted-foreground">Cantidad</Label>
@@ -620,6 +774,7 @@ function Step2Productos({
                       max="1000"
                       step="0.5"
                       value={item.markup}
+                      disabled={item.manualPrice !== null}
                       onChange={(e) =>
                         updateItem(item.key, 'markup', parseFloat(e.target.value) || 0)
                       }
@@ -627,9 +782,37 @@ function Step2Productos({
                     />
                   </div>
                 </div>
+                <div className="flex items-center justify-between text-xs">
+                  <button
+                    type="button"
+                    className="text-primary hover:underline"
+                    onClick={() =>
+                      updateItem(
+                        item.key,
+                        'manualPrice',
+                        item.manualPrice !== null ? null : item.basePrice * (1 + item.markup / 100),
+                      )
+                    }
+                  >
+                    {item.manualPrice !== null ? 'Usar precio calculado' : 'Editar precio manual'}
+                  </button>
+                </div>
+                {item.manualPrice !== null && (
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Precio unitario final</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={item.manualPrice}
+                      onChange={(e) => updateItem(item.key, 'manualPrice', parseFloat(e.target.value) || 0)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                )}
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">
-                    Precio c/util.: {formatCurrency(item.basePrice * (1 + item.markup / 100))}
+                    Precio unitario: {formatCurrency(item.manualPrice ?? item.basePrice * (1 + item.markup / 100))}
                   </span>
                   <span className="font-semibold">
                     {formatCurrency(item.subtotal)}
@@ -669,19 +852,31 @@ function Step3Resumen({
   cart,
   notes,
   channels,
+  sellerId,
   onNotesChange,
   onChannelsChange,
+  onSellerChange,
 }: {
   client: Client
   cart: CartItem[]
   notes: string
   channels: Channel[]
+  sellerId: string | null
   onNotesChange: (v: string) => void
   onChannelsChange: (v: Channel[]) => void
+  onSellerChange: (v: string | null) => void
 }) {
   const subtotal = cart.reduce((sum, i) => sum + i.subtotal, 0)
   const iva = subtotal * IVA_RATE
   const total = subtotal + iva
+
+  const [sellers, setSellers] = useState<{ id: string; name: string }[]>([])
+  useEffect(() => {
+    fetch('/api/users')
+      .then((r) => r.json())
+      .then(setSellers)
+      .catch(() => {})
+  }, [])
 
   const toggleChannel = (ch: Channel) =>
     onChannelsChange(
@@ -732,15 +927,17 @@ function Step3Resumen({
                   <TableRow key={item.key}>
                     <TableCell>
                       <p className="font-medium text-sm">{item.name}</p>
-                      {item.providerName && (
-                        <p className="text-xs text-muted-foreground">{item.providerName}</p>
-                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {[item.providerName, item.printTechnique !== 'Sin técnica' ? item.printTechnique : null]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </p>
                     </TableCell>
                     <TableCell className="text-right">{item.quantity}</TableCell>
                     <TableCell className="text-right">
-                      {formatCurrency(item.basePrice * (1 + item.markup / 100))}
+                      {formatCurrency(item.manualPrice ?? item.basePrice * (1 + item.markup / 100))}
                     </TableCell>
-                    <TableCell className="text-right">{item.markup}%</TableCell>
+                    <TableCell className="text-right">{item.manualPrice !== null ? 'manual' : `${item.markup}%`}</TableCell>
                     <TableCell className="text-right font-medium">
                       {formatCurrency(item.subtotal)}
                     </TableCell>
@@ -783,6 +980,28 @@ function Step3Resumen({
               <span>Total</span>
               <span>{formatCurrency(total)}</span>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Vendedor</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select
+              value={sellerId ?? 'none'}
+              onValueChange={(v) => onSellerChange(v === 'none' ? null : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sin asignar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sin asignar</SelectItem>
+                {sellers.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
 
@@ -831,6 +1050,7 @@ export default function NuevaCotizacion() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [notes, setNotes] = useState('')
   const [channels, setChannels] = useState<Channel[]>(['EMAIL'])
+  const [sellerId, setSellerId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
   const defaultMarkup = selectedClient ? parseFloat(selectedClient.markupPercent) : 30
@@ -852,6 +1072,7 @@ export default function NuevaCotizacion() {
 
     const payload = {
       clientId: selectedClient.id,
+      sellerId,
       channels: asDraft ? [] : channels,
       subtotal: subtotal.toFixed(2),
       iva: iva.toFixed(2),
@@ -862,9 +1083,10 @@ export default function NuevaCotizacion() {
         productId: item.type === 'product' ? item.id : null,
         serviceId: item.type === 'service' ? item.id : null,
         quantity: item.quantity,
-        unitPrice: item.basePrice.toFixed(2),
-        markup: item.markup.toFixed(2),
+        unitPrice: (item.manualPrice ?? item.basePrice).toFixed(2),
+        markup: (item.manualPrice !== null ? 0 : item.markup).toFixed(2),
         subtotal: item.subtotal.toFixed(2),
+        printTechnique: item.printTechnique !== 'Sin técnica' ? item.printTechnique : null,
       })),
     }
 
@@ -921,8 +1143,10 @@ export default function NuevaCotizacion() {
               cart={cart}
               notes={notes}
               channels={channels}
+              sellerId={sellerId}
               onNotesChange={setNotes}
               onChannelsChange={setChannels}
+              onSellerChange={setSellerId}
             />
           )}
         </CardContent>

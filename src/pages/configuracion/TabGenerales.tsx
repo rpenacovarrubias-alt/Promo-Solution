@@ -139,6 +139,16 @@ function LogotiposSection({
 }) {
   const [principal, setPrincipal] = useState(config['logos.principal'] ?? '')
   const [secundario, setSecundario] = useState(config['logos.secundario'] ?? '')
+  const [favicon, setFavicon] = useState(config['logos.favicon'] ?? '')
+  const [usoCorreos, setUsoCorreos] = useState(config['logos.uso.correos'] ?? 'Principal')
+  const [usoPdf, setUsoPdf] = useState(config['logos.uso.pdf'] ?? 'Principal')
+  const [usoFooter, setUsoFooter] = useState(config['logos.uso.footer'] ?? 'Secundario')
+
+  const USO_ROWS: { label: string; value: string; set: (v: string) => void }[] = [
+    { label: 'Correos', value: usoCorreos, set: setUsoCorreos },
+    { label: 'PDF', value: usoPdf, set: setUsoPdf },
+    { label: 'Pie de página', value: usoFooter, set: setUsoFooter },
+  ]
 
   return (
     <div className="space-y-6">
@@ -171,10 +181,77 @@ function LogotiposSection({
             <img src={secundario} alt="Logo secundario" className="h-16 object-contain rounded border p-2" />
           )}
         </div>
+        <div className="space-y-2">
+          <Label>Favicon (URL)</Label>
+          <Input
+            type="url"
+            placeholder="https://..."
+            value={favicon}
+            onChange={(e) => setFavicon(e.target.value)}
+          />
+          {favicon && (
+            <img src={favicon} alt="Favicon" className="h-8 w-8 object-contain rounded border p-1" />
+          )}
+        </div>
       </div>
+
+      <Separator />
+
+      <div className="space-y-3">
+        <div>
+          <p className="text-sm font-semibold">Logotipo a usar</p>
+          <p className="text-xs text-muted-foreground">
+            Recomendación: usa el logo secundario para fondos oscuros y el principal para fondos claros.
+          </p>
+        </div>
+        <div className="overflow-hidden rounded-lg border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/30 text-left text-xs uppercase text-muted-foreground">
+                <th className="px-4 py-2 font-medium">Contexto</th>
+                <th className="px-4 py-2 font-medium">Principal</th>
+                <th className="px-4 py-2 font-medium">Secundario</th>
+              </tr>
+            </thead>
+            <tbody>
+              {USO_ROWS.map((row) => (
+                <tr key={row.label} className="border-t">
+                  <td className="px-4 py-2.5 font-medium">{row.label}</td>
+                  <td className="px-4 py-2.5">
+                    <input
+                      type="radio"
+                      name={`uso-${row.label}`}
+                      checked={row.value === 'Principal'}
+                      onChange={() => row.set('Principal')}
+                    />
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <input
+                      type="radio"
+                      name={`uso-${row.label}`}
+                      checked={row.value === 'Secundario'}
+                      onChange={() => row.set('Secundario')}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <Button
         disabled={saving}
-        onClick={() => save({ 'logos.principal': principal, 'logos.secundario': secundario })}
+        onClick={() =>
+          save({
+            'logos.principal': principal,
+            'logos.secundario': secundario,
+            'logos.favicon': favicon,
+            'logos.uso.correos': usoCorreos,
+            'logos.uso.pdf': usoPdf,
+            'logos.uso.footer': usoFooter,
+          })
+        }
       >
         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
         Actualizar

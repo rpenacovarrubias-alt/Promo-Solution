@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import * as XLSX from 'xlsx'
 import prisma from './_db.js'
 
 const router = Router()
@@ -38,6 +39,37 @@ router.post('/', async (req, res) => {
   }
 })
 
+// GET /api/clients/excel
+router.get('/excel', async (req, res) => {
+  try {
+    const clients = await prisma.client.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { quotes: true } } },
+    })
+    const rows = clients.map((c, i) => ({
+      Folio: `CLTE-${String(i + 1).padStart(5, '0')}`,
+      Nombre: c.name,
+      Empresa: c.company || '',
+      Email: c.email,
+      Teléfono: c.phone || '',
+      '% Utilidad': parseFloat(c.markupPercent),
+      Estado: c.status,
+      Cotizaciones: c._count.quotes,
+    }))
+    const sheet = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, sheet, 'Clientes')
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    res.setHeader('Content-Disposition', 'attachment; filename="clientes.xlsx"')
+    res.send(buffer)
+  } catch (e) {
+    console.error('[clients Excel]', e)
+    return res.status(500).json({ error: 'Error al generar Excel' })
+  }
+})
+
 // GET /api/clients/:id
 router.get('/:id', async (req, res) => {
   try {
@@ -57,7 +89,7 @@ router.get('/:id', async (req, res) => {
 
 // PUT /api/clients/:id
 router.put('/:id', async (req, res) => {
-  const { name, email, phone, company, markupPercent } = req.body
+  const { name, email, phone, company, markupPercent, status } = req.body
   try {
     const client = await prisma.client.update({
       where: { id: req.params.id },
@@ -67,6 +99,7 @@ router.put('/:id', async (req, res) => {
         ...(phone !== undefined && { phone: phone || null }),
         ...(company !== undefined && { company: company || null }),
         ...(markupPercent !== undefined && { markupPercent: parseFloat(markupPercent) }),
+        ...(status !== undefined && { status }),
       },
     })
     return res.json(client)

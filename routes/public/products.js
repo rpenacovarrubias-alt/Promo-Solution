@@ -15,6 +15,7 @@ function formatProduct(p) {
     basePrice: parseFloat(p.basePrice),
     finalPrice: calcFinalPrice(p.basePrice, p.category?.utilityPercent),
     isActive: p.isActive,
+    isFeatured: p.isFeatured,
     stock: p.stock ?? null,
     category: p.category ? { id: p.category.id, name: p.category.name } : null,
     provider: p.provider ? { id: p.provider.id, name: p.provider.name, slug: p.provider.slug } : null,
@@ -34,6 +35,7 @@ router.get('/', async (req, res) => {
 
   const where = {
     isActive: true,
+    isVisible: true,
     ...(categoryId && { categoryId }),
     ...(providerId && { providerId }),
     ...(search && {
@@ -84,7 +86,7 @@ router.get('/:id', async (req, res) => {
         images: true, colors: true, variants: true,
       },
     })
-    if (!product || !product.isActive) return res.status(404).json({ error: 'Producto no encontrado' })
+    if (!product || !product.isActive || !product.isVisible) return res.status(404).json({ error: 'Producto no encontrado' })
     return res.json(formatProduct(product))
   } catch (e) {
     return res.status(500).json({ error: 'Error interno del servidor' })

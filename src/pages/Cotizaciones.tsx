@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Eye, Send, Loader2, Plus } from 'lucide-react'
+import { Eye, Send, Loader2, Plus, FileDown, FileSpreadsheet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -37,6 +37,7 @@ interface QuoteItem {
 interface Quote {
   id: string
   client: { name: string; email: string }
+  seller?: { name: string } | null
   status: QuoteStatus
   channels: Channel[]
   subtotal: string
@@ -128,6 +129,7 @@ export default function Cotizaciones() {
                 <TableRow>
                   <TableHead>Folio</TableHead>
                   <TableHead>Cliente</TableHead>
+                  <TableHead>Vendedor</TableHead>
                   <TableHead>Fecha</TableHead>
                   <TableHead>Canales</TableHead>
                   <TableHead>Estado</TableHead>
@@ -140,7 +142,7 @@ export default function Cotizaciones() {
               <TableBody>
                 {quotes.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center text-muted-foreground py-10">
+                    <TableCell colSpan={10} className="text-center text-muted-foreground py-10">
                       No hay cotizaciones registradas
                     </TableCell>
                   </TableRow>
@@ -153,6 +155,7 @@ export default function Cotizaciones() {
                           {getFolioNumber(index)}
                         </TableCell>
                         <TableCell>{q.client.name}</TableCell>
+                        <TableCell className="text-muted-foreground">{q.seller?.name ?? 'N/A'}</TableCell>
                         <TableCell className="text-muted-foreground">
                           {formatDate(q.createdAt)}
                         </TableCell>
@@ -201,6 +204,16 @@ export default function Cotizaciones() {
                             >
                               <Send className="h-4 w-4" />
                             </Button>
+                            <Button variant="ghost" size="icon" asChild title="Descargar PDF">
+                              <a href={`/api/quotes/${q.id}/pdf`} download>
+                                <FileDown className="h-4 w-4" />
+                              </a>
+                            </Button>
+                            <Button variant="ghost" size="icon" asChild title="Descargar Excel">
+                              <a href={`/api/quotes/${q.id}/excel`} download>
+                                <FileSpreadsheet className="h-4 w-4" />
+                              </a>
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -217,8 +230,20 @@ export default function Cotizaciones() {
       {selectedQuote && (
         <Dialog open={!!selectedQuote} onOpenChange={() => setSelectedQuote(null)}>
           <DialogContent className="max-w-2xl">
-            <DialogHeader>
+            <DialogHeader className="flex-row items-center justify-between space-y-0 pr-8">
               <DialogTitle>Detalle de cotización — {selectedQuote.client.name}</DialogTitle>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <a href={`/api/quotes/${selectedQuote.id}/pdf`} download>
+                    <FileDown className="mr-1.5 h-3.5 w-3.5" /> PDF
+                  </a>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <a href={`/api/quotes/${selectedQuote.id}/excel`} download>
+                    <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5" /> Excel
+                  </a>
+                </Button>
+              </div>
             </DialogHeader>
             <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
               <div className="flex flex-wrap gap-4 text-sm">

@@ -57,4 +57,21 @@ router.get('/:id', async (req, res) => {
   }
 })
 
+router.put('/:id', async (req, res) => {
+  const { isVisible, isFeatured } = req.body
+  try {
+    const product = await prisma.product.update({
+      where: { id: req.params.id },
+      data: {
+        ...(isVisible !== undefined && { isVisible }),
+        ...(isFeatured !== undefined && { isFeatured }),
+      },
+    })
+    return res.json(product)
+  } catch (e) {
+    if (e.code === 'P2025') return res.status(404).json({ error: 'Product not found' })
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
 export default router

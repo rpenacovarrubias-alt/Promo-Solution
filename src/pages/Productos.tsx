@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type MouseEvent } from 'react'
 import { toast } from 'sonner'
-import { Search, ChevronLeft, ChevronRight, LayoutGrid, List, Package } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, LayoutGrid, List, Package, Eye, EyeOff, Star } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -58,6 +58,8 @@ interface Product {
   category?: { id: string; name: string }
   basePrice: string
   isActive: boolean
+  isVisible: boolean
+  isFeatured: boolean
   provider: { id: string; name: string }
   images: ProductImage[]
   colors: ProductColor[]
@@ -136,6 +138,23 @@ export default function Productos() {
   const openDetail = (product: Product) => {
     setSelectedProduct(product)
     setCarouselIndex(0)
+  }
+
+  const toggleFlag = async (e: MouseEvent, product: Product, field: 'isVisible' | 'isFeatured') => {
+    e.stopPropagation()
+    const value = !product[field]
+    setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, [field]: value } : p)))
+    try {
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value }),
+      })
+      if (!res.ok) throw new Error()
+    } catch {
+      setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, [field]: !value } : p)))
+      toast.error('Error al actualizar producto')
+    }
   }
 
   const pageNumbers = (() => {
@@ -247,7 +266,7 @@ export default function Productos() {
                 style={{ animationDelay: `${(i % PAGE_SIZE) * 15}ms` }}
                 className="group animate-in fade-in slide-in-from-bottom-1 overflow-hidden rounded-xl border bg-card text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
               >
-                <div className="aspect-square overflow-hidden bg-gradient-to-br from-navy to-navy-mid">
+                <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-navy to-navy-mid">
                   {primaryImage ? (
                     <img
                       src={primaryImage.url}
@@ -260,6 +279,30 @@ export default function Productos() {
                       <Package className="h-10 w-10 text-white/40" />
                     </div>
                   )}
+                  <div className="absolute right-1.5 top-1.5 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <span
+                      role="button"
+                      onClick={(e) => toggleFlag(e, p, 'isFeatured')}
+                      title={p.isFeatured ? 'Quitar de destacados' : 'Marcar como destacado'}
+                      className={cn(
+                        'flex h-7 w-7 items-center justify-center rounded-md bg-white/90 hover:bg-white',
+                        p.isFeatured ? 'text-gold' : 'text-slate-400',
+                      )}
+                    >
+                      <Star className="h-3.5 w-3.5" fill={p.isFeatured ? 'currentColor' : 'none'} />
+                    </span>
+                    <span
+                      role="button"
+                      onClick={(e) => toggleFlag(e, p, 'isVisible')}
+                      title={p.isVisible ? 'Ocultar del sitio' : 'Mostrar en el sitio'}
+                      className={cn(
+                        'flex h-7 w-7 items-center justify-center rounded-md bg-white/90 hover:bg-white',
+                        p.isVisible ? 'text-navy' : 'text-slate-400',
+                      )}
+                    >
+                      {p.isVisible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                    </span>
+                  </div>
                 </div>
                 <div className="p-3.5">
                   <div className="flex items-start justify-between gap-2">
@@ -308,6 +351,7 @@ export default function Productos() {
                   <TableHead>Precio base</TableHead>
                   <TableHead>Colores</TableHead>
                   <TableHead>Estado</TableHead>
+                  <TableHead className="text-right">Sitio</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -333,6 +377,28 @@ export default function Productos() {
                         <Badge variant={p.isActive ? 'success' : 'secondary'}>
                           {p.isActive ? 'Activo' : 'Inactivo'}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn('h-8 w-8', p.isFeatured ? 'text-gold' : 'text-muted-foreground')}
+                            onClick={(e) => toggleFlag(e, p, 'isFeatured')}
+                            title={p.isFeatured ? 'Quitar de destacados' : 'Marcar como destacado'}
+                          >
+                            <Star className="h-4 w-4" fill={p.isFeatured ? 'currentColor' : 'none'} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn('h-8 w-8', !p.isVisible && 'text-muted-foreground')}
+                            onClick={(e) => toggleFlag(e, p, 'isVisible')}
+                            title={p.isVisible ? 'Ocultar del sitio' : 'Mostrar en el sitio'}
+                          >
+                            {p.isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   )

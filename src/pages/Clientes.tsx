@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, FileSpreadsheet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
@@ -16,6 +17,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Table,
   TableBody,
   TableCell,
@@ -24,6 +32,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+type ClientStatus = 'ACTIVO' | 'INACTIVO' | 'POR_CONFIRMAR'
+
 interface Client {
   id: string
   name: string
@@ -31,7 +41,20 @@ interface Client {
   phone?: string
   company?: string
   markupPercent: string
+  status: ClientStatus
   _count?: { quotes: number }
+}
+
+const STATUS_TABS: { key: ClientStatus; label: string }[] = [
+  { key: 'ACTIVO', label: 'Activos' },
+  { key: 'INACTIVO', label: 'Inactivos' },
+  { key: 'POR_CONFIRMAR', label: 'Por confirmar' },
+]
+
+const STATUS_BADGE: Record<ClientStatus, { label: string; variant: 'success' | 'secondary' | 'warning' }> = {
+  ACTIVO: { label: 'Activo', variant: 'success' },
+  INACTIVO: { label: 'Inactivo', variant: 'secondary' },
+  POR_CONFIRMAR: { label: 'Por confirmar', variant: 'warning' },
 }
 
 const clientSchema = z.object({
@@ -52,6 +75,8 @@ export default function Clientes() {
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState<ClientStatus>('ACTIVO')
+  const [editStatus, setEditStatus] = useState<ClientStatus>('ACTIVO')
 
   const {
     register,
@@ -76,14 +101,24 @@ export default function Clientes() {
     fetchClients()
   }, [])
 
+  const visibleClients = useMemo(
+    () =>
+      clients
+        .map((c, i) => ({ c, folio: `CLTE-${String(i + 1).padStart(5, '0')}` }))
+        .filter(({ c }) => c.status === activeTab),
+    [clients, activeTab],
+  )
+
   const openCreate = () => {
     setEditingClient(null)
+    setEditStatus('ACTIVO')
     reset({ name: '', email: '', phone: '', company: '', markupPercent: '30' })
     setDialogOpen(true)
   }
 
   const openEdit = (c: Client) => {
     setEditingClient(c)
+    setEditStatus(c.status)
     reset({
       name: c.name,
       email: c.email,
@@ -99,10 +134,11 @@ export default function Clientes() {
     try {
       const url = editingClient ? `/api/clients/${editingClient.id}` : '/api/clients'
       const method = editingClient ? 'PUT' : 'POST'
+      const payload = editingClient ? { ...data, status: editStatus } : data
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error()
       toast.success(editingClient ? 'Cliente actualizado' : 'Cliente creado')
@@ -135,10 +171,34 @@ export default function Clientes() {
           <h1 className="text-2xl font-bold tracking-tight">Clientes</h1>
           <p className="text-muted-foreground">Gestiona tu cartera de clientes</p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nuevo Cliente
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <a href="/api/clients/excel" download>
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Descargar clientes
+            </a>
+          </Button>
+          <Button onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo Cliente
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex gap-1 border-b">
+        {STATUS_TABS.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === tab.key
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       <Card>
@@ -154,31 +214,37 @@ export default function Clientes() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Folio</TableHead>
                   <TableHead>Nombre</TableHead>
                   <TableHead>Empresa</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Teléfono</TableHead>
                   <TableHead>% Utilidad</TableHead>
                   <TableHead># Cotizaciones</TableHead>
+                  <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {clients.length === 0 ? (
+                {visibleClients.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-10">
-                      No hay clientes registrados
+                    <TableCell colSpan={9} className="text-center text-muted-foreground py-10">
+                      No hay clientes en esta categoría
                     </TableCell>
                   </TableRow>
                 ) : (
-                  clients.map((c) => (
+                  visibleClients.map(({ c, folio }) => (
                     <TableRow key={c.id}>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{folio}</TableCell>
                       <TableCell className="font-medium">{c.name}</TableCell>
                       <TableCell className="text-muted-foreground">{c.company ?? '—'}</TableCell>
                       <TableCell>{c.email}</TableCell>
                       <TableCell className="text-muted-foreground">{c.phone ?? '—'}</TableCell>
                       <TableCell>{c.markupPercent}%</TableCell>
                       <TableCell>{c._count?.quotes ?? 0}</TableCell>
+                      <TableCell>
+                        <Badge variant={STATUS_BADGE[c.status].variant}>{STATUS_BADGE[c.status].label}</Badge>
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
@@ -242,6 +308,21 @@ export default function Clientes() {
                 )}
               </div>
             </div>
+            {editingClient && (
+              <div className="space-y-2">
+                <Label>Estado</Label>
+                <Select value={editStatus} onValueChange={(v) => setEditStatus(v as ClientStatus)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_TABS.map((s) => (
+                      <SelectItem key={s.key} value={s.key}>{s.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar

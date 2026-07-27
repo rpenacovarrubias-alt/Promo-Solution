@@ -1,7 +1,30 @@
 import { Router } from 'express'
+import { renderToStream } from '@react-pdf/renderer'
+import * as XLSX from 'xlsx'
+import React from 'react'
 import prisma from './_db.js'
+import { QuotePdfDocument } from '../lib/pdf/quotePdf.js'
 
 const router = Router()
+
+async function loadQuoteFull(id) {
+  return prisma.quote.findUnique({
+    where: { id },
+    include: {
+      client: true,
+      seller: { select: { name: true } },
+      items: { include: { product: true, service: true } },
+    },
+  })
+}
+
+function itemName(item) {
+  return item.product?.name ?? item.service?.name ?? 'Item'
+}
+
+function itemCode(item) {
+  return item.product?.externalId ?? ''
+}
 
 router.get('/', async (req, res) => {
   const { clientId, status } = req.query
@@ -13,6 +36,7 @@ router.get('/', async (req, res) => {
       },
       include: {
         client: { select: { id: true, name: true, email: true } },
+        seller: { select: { id: true, name: true } },
         items: {
           include: {
             product: { select: { id: true, name: true } },
@@ -30,7 +54,7 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  const { clientId, channels, subtotal, iva, total, notes, status, items } = req.body
+  const { clientId, sellerId, channels, subtotal, iva, total, notes, status, items } = req.body
   if (!clientId || subtotal === undefined || iva === undefined || total === undefined) {
     return res.status(400).json({ error: 'clientId, subtotal, iva, total are required' })
   }
@@ -38,6 +62,7 @@ router.post('/', async (req, res) => {
     const quote = await prisma.quote.create({
       data: {
         clientId,
+        sellerId: sellerId || null,
         channels: channels ?? [],
         subtotal: parseFloat(subtotal),
         iva: parseFloat(iva),
@@ -52,10 +77,11 @@ router.post('/', async (req, res) => {
             unitPrice: parseFloat(item.unitPrice),
             markup: parseFloat(item.markup),
             subtotal: parseFloat(item.subtotal),
+            printTechnique: item.printTechnique || null,
           })),
         } : undefined,
       },
-      include: { client: true, items: true },
+      include: { client: true, seller: { select: { id: true, name: true } }, items: true },
     })
     return res.status(201).json(quote)
   } catch (e) {
@@ -74,6 +100,60 @@ router.get('/:id', async (req, res) => {
     return res.json(quote)
   } catch (e) {
     return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+router.get('/:id/pdf', async (req, res) => {
+  try {
+    const quote = await loadQuoteFull(req.params.id)
+    if (!quote) return res.status(404).json({ error: 'Quote not found' })
+
+    const configRows = await prisma.config.findMany({
+      where: { key: { in: ['logos.principal', 'logos.secundario', 'logos.uso.pdf', 'cot.pdf.info'] } },
+    })
+    const cfg = Object.fromEntries(configRows.map((r) => [r.key, r.value]))
+    const logoUrl = cfg['logos.uso.pdf'] === 'Secundario' ? cfg['logos.secundario'] : cfg['logos.principal']
+
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="cotizacion-${quote.id.slice(-6)}.pdf"`)
+    const stream = await renderToStream(
+      React.createElement(QuotePdfDocument, { quote, logoUrl: logoUrl || null, footerInfo: cfg['cot.pdf.info'] || null }),
+    )
+    stream.pipe(res)
+  } catch (e) {
+    console.error('[quotes PDF]', e)
+    return res.status(500).json({ error: 'Error al generar PDF' })
+  }
+})
+
+router.get('/:id/excel', async (req, res) => {
+  try {
+    const quote = await loadQuoteFull(req.params.id)
+    if (!quote) return res.status(404).json({ error: 'Quote not found' })
+
+    const rows = quote.items.map((item) => ({
+      Código: itemCode(item),
+      Concepto: itemName(item),
+      'Técnica': item.printTechnique || '',
+      Cantidad: item.quantity,
+      'Precio unitario': parseFloat(item.unitPrice),
+      Subtotal: parseFloat(item.subtotal),
+    }))
+    rows.push({}, { Concepto: 'Subtotal', Subtotal: parseFloat(quote.subtotal) })
+    rows.push({ Concepto: 'IVA (16%)', Subtotal: parseFloat(quote.iva) })
+    rows.push({ Concepto: 'Total', Subtotal: parseFloat(quote.total) })
+
+    const sheet = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, sheet, 'Cotización')
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    res.setHeader('Content-Disposition', `attachment; filename="cotizacion-${quote.id.slice(-6)}.xlsx"`)
+    res.send(buffer)
+  } catch (e) {
+    console.error('[quotes Excel]', e)
+    return res.status(500).json({ error: 'Error al generar Excel' })
   }
 })
 

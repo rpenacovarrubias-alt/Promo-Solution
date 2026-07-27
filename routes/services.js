@@ -16,13 +16,13 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  const { name, type, unitPrice, description } = req.body
+  const { name, type, unitPrice, description, imageUrl } = req.body
   if (!name || !type || unitPrice === undefined) {
     return res.status(400).json({ error: 'name, type and unitPrice are required' })
   }
   try {
     const service = await prisma.service.create({
-      data: { name, type, unitPrice: parseFloat(unitPrice), description: description || null },
+      data: { name, type, unitPrice: parseFloat(unitPrice), description: description || null, imageUrl: imageUrl || null },
     })
     return res.status(201).json(service)
   } catch (e) {
@@ -42,7 +42,7 @@ router.get('/:id', async (req, res) => {
 })
 
 router.put('/:id', async (req, res) => {
-  const { name, type, unitPrice, description, isActive } = req.body
+  const { name, type, unitPrice, description, imageUrl, isActive } = req.body
   try {
     const service = await prisma.service.update({
       where: { id: req.params.id },
@@ -51,6 +51,7 @@ router.put('/:id', async (req, res) => {
         ...(type !== undefined && { type }),
         ...(unitPrice !== undefined && { unitPrice: parseFloat(unitPrice) }),
         ...(description !== undefined && { description: description || null }),
+        ...(imageUrl !== undefined && { imageUrl: imageUrl || null }),
         ...(isActive !== undefined && { isActive }),
       },
     })

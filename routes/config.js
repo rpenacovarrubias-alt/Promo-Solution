@@ -22,11 +22,9 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  const { ivaPercent, defaultMarkup, companyName, logoUrl } = req.body
-  const entries = { ivaPercent, defaultMarkup, companyName, logoUrl }
   try {
     await Promise.all(
-      Object.entries(entries).map(([key, value]) =>
+      Object.entries(req.body).map(([key, value]) =>
         value !== undefined
           ? prisma.config.upsert({
               where: { key },

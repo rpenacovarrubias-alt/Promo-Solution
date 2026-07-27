@@ -42,6 +42,7 @@ interface Service {
   type: ServiceType
   unitPrice: string
   description?: string
+  imageUrl?: string
   isActive: boolean
 }
 
@@ -66,6 +67,7 @@ const serviceSchema = z.object({
   type: z.enum(['ESTAMPADO', 'BORDADO', 'GRABADO', 'SUBLIMACION', 'OTRO']),
   unitPrice: z.string().min(1, 'El precio es requerido'),
   description: z.string().optional(),
+  imageUrl: z.string().optional(),
 })
 
 type ServiceForm = z.infer<typeof serviceSchema>
@@ -85,8 +87,11 @@ export default function Servicios() {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<ServiceForm>({ resolver: zodResolver(serviceSchema) })
+
+  const imageUrlValue = watch('imageUrl')
 
   const fetchServices = async () => {
     try {
@@ -107,7 +112,7 @@ export default function Servicios() {
   const openCreate = () => {
     setEditingService(null)
     setSelectedType('ESTAMPADO')
-    reset({ name: '', type: 'ESTAMPADO', unitPrice: '', description: '' })
+    reset({ name: '', type: 'ESTAMPADO', unitPrice: '', description: '', imageUrl: '' })
     setDialogOpen(true)
   }
 
@@ -119,6 +124,7 @@ export default function Servicios() {
       type: s.type,
       unitPrice: s.unitPrice,
       description: s.description ?? '',
+      imageUrl: s.imageUrl ?? '',
     })
     setDialogOpen(true)
   }
@@ -183,6 +189,7 @@ export default function Servicios() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Imagen</TableHead>
                   <TableHead>Nombre</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Precio unitario</TableHead>
@@ -194,13 +201,20 @@ export default function Servicios() {
               <TableBody>
                 {services.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-10">
                       No hay servicios registrados
                     </TableCell>
                   </TableRow>
                 ) : (
                   services.map((s) => (
                     <TableRow key={s.id}>
+                      <TableCell>
+                        {s.imageUrl ? (
+                          <img src={s.imageUrl} alt={s.name} className="h-10 w-10 rounded-md object-cover" />
+                        ) : (
+                          <div className="h-10 w-10 rounded-md bg-muted" />
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">{s.name}</TableCell>
                       <TableCell>
                         <span
@@ -284,6 +298,13 @@ export default function Servicios() {
               <Input type="number" step="0.01" min="0" placeholder="0.00" {...register('unitPrice')} />
               {errors.unitPrice && (
                 <p className="text-xs text-destructive">{errors.unitPrice.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Imagen (URL)</Label>
+              <Input type="url" placeholder="https://..." {...register('imageUrl')} />
+              {imageUrlValue && (
+                <img src={imageUrlValue} alt="Vista previa" className="h-16 w-16 rounded-md border object-cover" />
               )}
             </div>
             <div className="space-y-2">
