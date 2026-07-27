@@ -16,19 +16,28 @@ router.get('/', async (req, res) => {
     ...(categoryId && { categoryId }),
     ...(providerId && { providerId }),
   }
+  const pageNum = parseInt(page)
+  const limitNum = parseInt(limit)
   try {
-    const products = await prisma.product.findMany({
-      where,
-      include: {
-        provider: { select: { id: true, name: true } },
-        category: { select: { id: true, name: true } },
-        images: true, colors: true, variants: true,
-      },
-      orderBy: { createdAt: 'desc' },
-      skip: (parseInt(page) - 1) * parseInt(limit),
-      take: parseInt(limit),
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: {
+          provider: { select: { id: true, name: true } },
+          category: { select: { id: true, name: true } },
+          images: true, colors: true, variants: true,
+        },
+        orderBy: [{ isActive: 'desc' }, { name: 'asc' }],
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+      }),
+      prisma.product.count({ where }),
+    ])
+    const totalPages = Math.ceil(total / limitNum)
+    return res.json({
+      data: products,
+      pagination: { page: pageNum, limit: limitNum, total, totalPages, hasNext: pageNum < totalPages, hasPrev: pageNum > 1 },
     })
-    return res.json(products)
   } catch (e) {
     console.error('[products GET]', e)
     return res.status(500).json({ error: 'Internal server error' })
