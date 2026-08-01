@@ -213,8 +213,28 @@ model Client {
   markupPercent Decimal      @default(30) @db.Decimal(5, 2)
   status        ClientStatus @default(ACTIVO)
   quotes        Quote[]
+
+  // Cuenta del sitio público — null mientras el cliente solo ha cotizado como invitado.
+  // Mismo registro de Client de siempre: al crear cuenta se reconcilia por telefono/email
+  // con el historial de cotizaciones existente (ver lib/quotes.js), no se duplica.
+  password             String?
+  resetToken           String?          @unique
+  resetTokenExpiresAt  DateTime?
+  sessions             ClientSession[]
+
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
+
+  @@schema("promo_panel")
+}
+
+model ClientSession {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 
   @@schema("promo_panel")
 }

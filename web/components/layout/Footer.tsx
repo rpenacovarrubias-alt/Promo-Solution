@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export function Footer() {
   return (
@@ -8,14 +9,10 @@ export function Footer() {
 
           {/* Brand */}
           <div className="md:col-span-1">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 bg-gold-500 rounded-lg flex items-center justify-center">
-                <span className="text-navy-900 font-bold text-sm">PS</span>
-              </div>
-              <div>
-                <div className="font-bold text-sm leading-tight">PROMO</div>
-                <div className="text-gold-400 font-bold text-sm leading-tight">SOLUTIONS</div>
-              </div>
+            {/* El logo trae su propio fondo claro (no es transparente) —
+               se envuelve en una tarjeta del mismo tono para que no choque con el navy */}
+            <div className="inline-block bg-[#F7F6F1] rounded-lg px-3 py-2 mb-3">
+              <Image src="/logo.png" alt="Promo Solution" width={300} height={90} className="h-8 w-auto" />
             </div>
             <p className="text-navy-200 text-sm leading-relaxed">
               Tu marca en mano de todos. Productos promocionales y uniformes de calidad para empresas.

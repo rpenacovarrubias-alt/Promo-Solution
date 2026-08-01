@@ -1,16 +1,17 @@
 import { getProducts } from '@/lib/api'
 import { ProductoCard } from '@/components/product/ProductoCard'
 import Link from 'next/link'
+import { CupSoda, Laptop, Shirt, Leaf, NotebookText, KeyRound, Dumbbell, PenTool } from 'lucide-react'
 
 const CATEGORIAS_HERO = [
-  { nombre: 'Bebidas',    emoji: '🫗' },
-  { nombre: 'Tecnología', emoji: '💻' },
-  { nombre: 'Uniformes',  emoji: '👕' },
-  { nombre: 'Ecológicos', emoji: '🌿' },
-  { nombre: 'Libretas',   emoji: '📒' },
-  { nombre: 'Llaveros',   emoji: '🔑' },
-  { nombre: 'Deportes',   emoji: '⚽' },
-  { nombre: 'Oficina',    emoji: '🖊️' },
+  { nombre: 'Bebidas',    Icon: CupSoda },
+  { nombre: 'Tecnología', Icon: Laptop },
+  { nombre: 'Uniformes',  Icon: Shirt },
+  { nombre: 'Ecológicos', Icon: Leaf },
+  { nombre: 'Libretas',   Icon: NotebookText },
+  { nombre: 'Llaveros',   Icon: KeyRound },
+  { nombre: 'Deportes',   Icon: Dumbbell },
+  { nombre: 'Oficina',    Icon: PenTool },
 ]
 
 export default async function HomePage() {
@@ -56,14 +57,18 @@ export default async function HomePage() {
       {/* Categorías rápidas */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
-          {CATEGORIAS_HERO.map(cat => (
-            <Link key={cat.nombre}
-              href={`/catalogo?q=${encodeURIComponent(cat.nombre)}`}
+          {CATEGORIAS_HERO.map(({ nombre, Icon }) => (
+            <Link key={nombre}
+              href={`/catalogo?q=${encodeURIComponent(nombre)}`}
               className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-gold-100
                          hover:border-navy-200 hover:bg-navy-50 transition-all text-center group">
-              <span className="text-2xl">{cat.emoji}</span>
+              <span className="flex items-center justify-center w-16 h-16 rounded-full
+                               bg-navy-50 text-navy-700 group-hover:bg-navy-700 group-hover:text-white
+                               transition-colors">
+                <Icon className="w-8 h-8" strokeWidth={1.6} />
+              </span>
               <span className="text-xs font-medium text-gray-700 group-hover:text-navy-700">
-                {cat.nombre}
+                {nombre}
               </span>
             </Link>
           ))}

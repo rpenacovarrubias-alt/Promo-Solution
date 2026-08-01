@@ -5,6 +5,9 @@ import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { useCarrito } from '@/components/quote/CarritoContext'
 import { useRouter } from 'next/navigation'
+import { UserRound, LogOut } from 'lucide-react'
+import { LoginModal } from './LoginModal'
+import { useAuth } from '@/components/auth/AuthContext'
 
 const CATEGORIAS_MENU = [
   'Bebidas', 'Tecnología', 'Oficina y Escritorio', 'Textiles', 'Uniformes',
@@ -13,8 +16,10 @@ const CATEGORIAS_MENU = [
 
 export function Header() {
   const [menuOpen, setMenuOpen]   = useState(false)
+  const [loginOpen, setLoginOpen] = useState(false)
   const [searchVal, setSearchVal] = useState('')
   const { total: totalItems }     = useCarrito()
+  const { client, logout }        = useAuth()
   const router                    = useRouter()
   const searchRef                 = useRef<HTMLInputElement>(null)
 
@@ -38,15 +43,8 @@ export function Header() {
 
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-navy-700 rounded-lg flex items-center justify-center">
-                <span className="text-gold-500 font-bold text-sm">PS</span>
-              </div>
-              <div className="hidden sm:block">
-                <div className="text-navy-700 font-bold text-sm leading-tight">PROMO</div>
-                <div className="text-gold-500 font-bold text-sm leading-tight">SOLUTIONS</div>
-              </div>
-            </div>
+            <Image src="/logo.png" alt="Promo Solution" width={300} height={90}
+              className="h-9 w-auto" priority />
           </Link>
 
           {/* Search */}
@@ -111,6 +109,30 @@ export function Header() {
             </Link>
           </nav>
 
+          {/* Inicia sesión / cuenta */}
+          {client ? (
+            <div className="hidden md:flex items-center gap-1">
+              <span className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700">
+                <UserRound className="w-4 h-4" strokeWidth={1.75} />
+                Hola, {client.name.split(' ')[0]}
+              </span>
+              <button
+                onClick={() => logout()}
+                aria-label="Cerrar sesión"
+                className="p-2 text-gray-400 hover:text-navy-700 rounded-lg hover:bg-navy-50 transition-colors">
+                <LogOut className="w-4 h-4" strokeWidth={1.75} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setLoginOpen(true)}
+              className="hidden md:flex items-center gap-1.5 px-3 py-2 text-sm font-medium
+                         text-gray-700 hover:text-navy-700 rounded-lg hover:bg-navy-50 transition-colors">
+              <UserRound className="w-4 h-4" strokeWidth={1.75} />
+              Inicia Sesión
+            </button>
+          )}
+
           {/* Cart */}
           <Link href="/cotizar"
             className="relative flex items-center gap-2 px-3 py-2 bg-navy-700 hover:bg-navy-800
@@ -151,8 +173,25 @@ export function Header() {
             </Link>
           ))}
           <Link href="/contacto" className="block py-2 text-sm text-gray-700">Contacto</Link>
+          {client ? (
+            <button
+              onClick={() => { setMenuOpen(false); logout() }}
+              className="flex items-center gap-1.5 py-2 text-sm text-gray-700">
+              <LogOut className="w-4 h-4" strokeWidth={1.75} />
+              Cerrar sesión ({client.name.split(' ')[0]})
+            </button>
+          ) : (
+            <button
+              onClick={() => { setMenuOpen(false); setLoginOpen(true) }}
+              className="flex items-center gap-1.5 py-2 text-sm text-gray-700">
+              <UserRound className="w-4 h-4" strokeWidth={1.75} />
+              Inicia Sesión
+            </button>
+          )}
         </div>
       )}
+
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     </header>
   )
 }
