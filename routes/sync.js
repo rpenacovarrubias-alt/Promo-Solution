@@ -91,7 +91,7 @@ router.post('/', async (req, res) => {
         case 'promo-option':  result = await testPromoOption(provider.apiUser, provider.apiPassword); break
         case 'innovation':    result = await testInnovation(provider.apiUser, provider.apiPassword); break
         case '4promotional':  result = await testFourPromotional(provider.apiKey, provider.accountId); break
-        case 'doble-vela':    result = await testDobleVela(provider.apiUser, provider.apiPassword, provider.accountId); break
+        case 'doble-vela':    result = await testDobleVela(provider.apiKey); break
         default:              result = { ok: false, message: 'Sin adaptador' }
       }
       return res.json(result)
