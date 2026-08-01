@@ -35,6 +35,18 @@ const nextConfig = {
         hostname: 'admin.promosolution.com.mx',
         pathname: '/**',
       },
+      // Doble Vela (imágenes servidas directo desde su dominio)
+      {
+        protocol: 'https',
+        hostname: 'doblevela.com',
+        pathname: '/**',
+      },
+      // Innovation (bucket S3 del proveedor)
+      {
+        protocol: 'https',
+        hostname: 'multimedias3-cloudsync-synology.s3.us-west-2.amazonaws.com',
+        pathname: '/**',
+      },
       // Solo para los productos TEST — quitar cuando el catálogo real esté conectado
       {
         protocol: 'https',
