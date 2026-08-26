@@ -92,7 +92,7 @@ export default function CotizarPage() {
                   <Image
                     src={item.imageUrl ?? '/placeholder-product.png'}
                     alt={item.nombre}
-                    fill className="object-contain p-1"
+                    fill unoptimized className="object-contain p-1"
                   />
                 </div>
                 <div className="flex-1 min-w-0">

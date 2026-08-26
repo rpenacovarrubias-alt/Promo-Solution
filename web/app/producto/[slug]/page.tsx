@@ -59,6 +59,7 @@ export default async function ProductoPage({ params }: Props) {
               src={imgUrl}
               alt={producto.name}
               fill
+              unoptimized
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-contain p-8"
               priority
@@ -69,7 +70,7 @@ export default async function ProductoPage({ params }: Props) {
             <div className="flex gap-2 overflow-x-auto pb-1">
               {producto.images.map((img, i) => (
                 <div key={i} className="relative w-16 h-16 flex-shrink-0 bg-gray-50 rounded-lg overflow-hidden border border-gray-100">
-                  <Image src={img.url} alt={`${producto.name} ${i + 1}`} fill className="object-contain p-1" />
+                  <Image src={img.url} alt={`${producto.name} ${i + 1}`} fill unoptimized className="object-contain p-1" />
                 </div>
               ))}
             </div>
