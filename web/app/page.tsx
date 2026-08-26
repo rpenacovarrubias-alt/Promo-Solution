@@ -1,6 +1,7 @@
 import { getProducts } from '@/lib/api'
 import { ProductoCard } from '@/components/product/ProductoCard'
 import Link from 'next/link'
+import Image from 'next/image'
 import { CupSoda, Laptop, Shirt, Leaf, NotebookText, KeyRound, Dumbbell, PenTool } from 'lucide-react'
 
 const CATEGORIAS_HERO = [
@@ -26,8 +27,23 @@ export default async function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-navy-700 to-navy-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
+      <section className="relative overflow-hidden text-white">
+        <Image
+          src="/hero.jpg"
+          alt=""
+          fill
+          priority
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-navy-900/95 via-navy-900/65 to-navy-900/10" />
+        <Image
+          src="/hero-badge.png"
+          alt="Promo Solution"
+          width={145}
+          height={68}
+          className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 drop-shadow-lg"
+        />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
           <div className="max-w-2xl">
             <p className="text-gold-400 font-semibold text-sm tracking-wide uppercase mb-3">
               Más de 5,800 productos
