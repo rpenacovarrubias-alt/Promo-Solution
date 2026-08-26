@@ -118,8 +118,11 @@ export default async function CatalogoPage({ searchParams }: Props) {
               {page > 1 && (
                 <Link href={buildUrl(page - 1)} className="btn-outline px-3 py-2">← Anterior</Link>
               )}
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const p = Math.max(1, Math.min(page - 2 + i, totalPages - 4 + i))
+              {(() => {
+                const windowSize = Math.min(5, totalPages)
+                const start = Math.max(1, Math.min(page - 2, totalPages - windowSize + 1))
+                return Array.from({ length: windowSize }, (_, i) => start + i)
+              })().map(p => {
                 return (
                   <Link key={p} href={buildUrl(p)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
