@@ -57,7 +57,7 @@ router.get('/', async (req, res) => {
           colors:   { take: 5 },
           variants: { orderBy: { minQty: 'asc' }, take: 3 },
         },
-        orderBy: { name: 'asc' },
+        orderBy: [{ images: { _count: 'desc' } }, { name: 'asc' }],
         skip: (pageNum - 1) * limitNum,
         take: limitNum,
       }),
