@@ -33,6 +33,7 @@ export default async function HomePage() {
           alt=""
           fill
           priority
+          unoptimized
           className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-navy-900/95 via-navy-900/65 to-navy-900/10" />
@@ -41,6 +42,7 @@ export default async function HomePage() {
           alt="Promo Solution"
           width={145}
           height={68}
+          unoptimized
           className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 drop-shadow-lg"
         />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">

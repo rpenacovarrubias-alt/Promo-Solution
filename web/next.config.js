@@ -4,6 +4,9 @@ const nextConfig = {
   output: 'standalone',
 
   images: {
+    // Sin esto, Next pasa cada <Image> por el proxy pagado /_next/image de Vercel,
+    // que se agota mes a mes y devuelve 402 en produccion (ver commits e101c9f, 008f3fd).
+    unoptimized: true,
     remotePatterns: [
       // CDN CloudFront (legado)
       {
