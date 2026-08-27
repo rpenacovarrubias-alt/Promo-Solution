@@ -1112,7 +1112,10 @@ export default function NuevaCotizacion() {
         productId: item.type === 'product' ? item.id : null,
         serviceId: item.type === 'service' ? item.id : (item.servicioId ?? null),
         quantity: item.quantity,
-        unitPrice: (item.manualPrice ?? item.basePrice).toFixed(2),
+        // Mismo criterio que lib/quotes.js (Julio/sitio público): unitPrice
+        // ya trae el % del cliente aplicado, no el precio crudo del proveedor
+        // — si no, "P. Unitario" en el PDF no coincide con el Subtotal.
+        unitPrice: (item.manualPrice ?? item.basePrice * (1 + item.markup / 100)).toFixed(2),
         markup: (item.manualPrice !== null ? 0 : item.markup).toFixed(2),
         subtotal: item.subtotal.toFixed(2),
         printTechnique: item.type === 'product' ? item.servicioNombre ?? null : null,
