@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Mockup Cotizador — Header/Footer</title>
+<style>
+  :root{
+    --navy:#17264A;
+    --navy-2:#1F3363;
+    --gold:#C9A15A;
+    --gray-900:#1a1a1a;
+    --gray-500:#6b7280;
+    --gray-200:#e5e7eb;
+    --gray-50:#F7F8FA;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:#525659;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    display:flex;
+    justify-content:center;
+    padding:40px 0;
+  }
+  .page{
+    width:794px;
+    min-height:1123px;
+    background:#fff;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);
+    display:flex;
+    flex-direction:column;
+    color:var(--gray-900);
+  }
+
+  /* ===== HEADER ===== */
+  /* La franja ES el header: degradado blanco -> azul. El logo vive en el tramo
+     blanco (legible en azul marino) y el folio en el tramo azul (texto claro). */
+  .header{
+    background:linear-gradient(90deg, #ffffff 0%, #ffffff 38%, var(--navy) 74%, var(--navy-2) 100%);
+    padding:26px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .header img{ height:40px; display:block; }
+  .header .doc{ text-align:right; }
+  .header .doc .label{
+    font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--gold); font-weight:700; margin-bottom:4px;
+  }
+  .header .doc .folio{ font-size:22px; font-weight:700; line-height:1; color:#fff; }
+  .header .doc .date{ font-size:10.5px; color:#c7cede; margin-top:6px; }
+  .header-divider{ height:3px; background:var(--gold); }
+
+  /* ===== BODY (contenido mínimo para dar contexto) ===== */
+  .body{ padding:28px 40px; flex:1; }
+  .meta-row{ display:flex; justify-content:space-between; margin-bottom:22px; }
+  .meta-block .label{ font-size:8px; letter-spacing:1px; text-transform:uppercase; color:var(--gray-500); margin-bottom:3px; }
+  .meta-block .value{ font-size:11px; margin-bottom:5px; }
+  .meta-block .value.strong{ font-weight:700; font-size:12.5px; }
+
+  table{ width:100%; border-collapse:collapse; margin-top:6px; }
+  thead tr{ background:var(--gray-50); border-bottom:1px solid var(--gray-200); }
+  th{ text-align:left; font-size:8.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--gray-500); padding:8px 6px; font-weight:700; }
+  th.num{ text-align:right; }
+  td{ padding:10px 6px; border-bottom:1px solid #f0f0f0; font-size:10px; vertical-align:top; }
+  td.num{ text-align:right; }
+  .prod-name{ font-weight:600; }
+  .prod-sub{ font-size:8px; color:var(--gray-500); margin-top:2px; }
+  .prod-code{ font-size:7.5px; color:#a8adb5; }
+
+  .totals{ margin-top:18px; display:flex; justify-content:flex-end; }
+  .totals-box{ width:220px; }
+  .totals-row{ display:flex; justify-content:space-between; font-size:10px; color:var(--gray-500); padding:3px 0; }
+  .totals-row.grand{
+    border-top:1px solid var(--gray-200); margin-top:6px; padding-top:8px;
+    font-size:13px; font-weight:700; color:var(--navy);
+  }
+  .totals-row.grand span:first-child{ color:var(--gray-900); }
+
+  .placeholder-note{
+    margin-top:26px; font-size:9px; color:#b3b8c2; font-style:italic;
+    border:1px dashed #d8dce3; padding:10px 12px; border-radius:4px;
+  }
+
+  /* ===== FOOTER ===== */
+  /* Mismo criterio que el header, en espejo: blanco a la izquierda (marca + contacto
+     en texto oscuro) y azul a la derecha (paginación en texto claro). */
+  .footer{ margin-top:auto; }
+  .footer-divider{ height:3px; background:var(--gold); }
+  .footer .strip{
+    background:linear-gradient(90deg, #ffffff 0%, #ffffff 62%, var(--navy) 88%, var(--navy-2) 100%);
+    padding:14px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:8.5px;
+  }
+  .footer .strip .brand-block{ display:flex; align-items:center; gap:16px; }
+  .footer .strip .brand{ font-weight:700; color:var(--navy); letter-spacing:.3px; }
+  .footer .strip .contact{ display:flex; gap:16px; color:var(--gray-500); }
+  .footer .strip .contact span{ display:flex; align-items:center; gap:5px; }
+  .footer .strip .page-num{ color:#fff; font-weight:600; }
+</style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- HEADER -->
+    <div class="header">
+      <img src="file:///C:/Users/tezca/OneDrive/Escritorio/PROMO%20SOLUTION/FLUJOS%20DE%20AUTOMATIZACI%C3%93N/LOGOTIPOS/Logotipo_Nuevo-removebg-preview.png" alt="Promo Solution">
+      <div class="doc">
+        <div class="label">Cotización</div>
+        <div class="folio">COT-0006</div>
+        <div class="date">27 de marzo de 2026</div>
+      </div>
+    </div>
+    <div class="header-divider"></div>
+
+    <!-- BODY (placeholder mínimo, no es el foco de este paso) -->
+    <div class="body">
+      <div class="meta-row">
+        <div class="meta-block">
+          <div class="label">Cliente</div>
+          <div class="value strong">Elizabeth Reyes</div>
+          <div class="value">contacto@ejemplo.com</div>
+        </div>
+        <div class="meta-block" style="text-align:right;">
+          <div class="label">Vendedor</div>
+          <div class="value">Julio · Ventas</div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:46%">Producto</th>
+            <th style="width:20%">Impresión</th>
+            <th class="num" style="width:10%">Cant.</th>
+            <th class="num" style="width:12%">P. Unitario</th>
+            <th class="num" style="width:12%">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="prod-name">Porta gafete metálico</div>
+              <div class="prod-sub">Retráctil, incluye caja individual</div>
+              <div class="prod-code">PSM-38428 · Color plata</div>
+            </td>
+            <td>Grabado láser<br><span class="prod-sub">$9.00 c/u</span></td>
+            <td class="num">100</td>
+            <td class="num">$34.41</td>
+            <td class="num">$3,441.00</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="prod-name">Yoyo portagafetes con seguro</div>
+              <div class="prod-sub">No incluye portagafete</div>
+              <div class="prod-code">PSM-07958 · Color negro</div>
+            </td>
+            <td>Tampografía<br><span class="prod-sub">$8.00 c/u</span></td>
+            <td class="num">100</td>
+            <td class="num">$56.88</td>
+            <td class="num">$5,688.00</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="totals">
+        <div class="totals-box">
+          <div class="totals-row"><span>Subtotal</span><span>$9,163.41</span></div>
+          <div class="totals-row"><span>IVA (16%)</span><span>$1,466.15</span></div>
+          <div class="totals-row grand"><span>Total</span><span>$10,629.56</span></div>
+        </div>
+      </div>
+
+      <div class="placeholder-note">
+        Nota: el cuerpo (tabla, totales) es contenido de referencia para ver el header/footer en contexto —
+        el diseño de columnas y datos de proveedor es el siguiente paso, no forma parte de esta entrega.
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div class="footer-divider"></div>
+      <div class="strip">
+        <div class="brand-block">
+          <span class="brand">Promo Solution</span>
+          <div class="contact">
+            <span>ventas@promosolution.com.mx</span>
+            <span>442 131 4203</span>
+            <span>promosolution.com.mx</span>
+          </div>
+        </div>
+        <span class="page-num">Página 1 de 1</span>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

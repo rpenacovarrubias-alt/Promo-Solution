@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
         name, email,
         phone: phone || null,
         company: company || null,
-        markupPercent: markupPercent ? parseFloat(markupPercent) : 30,
+        markupPercent: markupPercent ? parseFloat(markupPercent) : 33,
       },
     })
     return res.status(201).json(client)
@@ -52,7 +52,7 @@ router.get('/excel', async (req, res) => {
       Empresa: c.company || '',
       Email: c.email,
       Teléfono: c.phone || '',
-      '% Utilidad': parseFloat(c.markupPercent),
+      '% Desc.': parseFloat(c.markupPercent),
       Estado: c.status,
       Cotizaciones: c._count.quotes,
     }))

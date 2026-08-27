@@ -251,7 +251,7 @@ function Step1Cliente({
                   )}
                   <p className="truncate text-xs text-muted-foreground">{c.email}</p>
                   <Badge variant="outline" className="mt-1 text-[10px]">
-                    Utilidad: {c.markupPercent}%
+                    % de Desc.: {c.markupPercent}%
                   </Badge>
                 </div>
               </button>
@@ -278,7 +278,7 @@ function NewClientDialog({
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [company, setCompany] = useState('')
-  const [markupPercent, setMarkupPercent] = useState('30')
+  const [markupPercent, setMarkupPercent] = useState('33')
   const [isSaving, setIsSaving] = useState(false)
 
   const reset = () => {
@@ -286,7 +286,7 @@ function NewClientDialog({
     setEmail('')
     setPhone('')
     setCompany('')
-    setMarkupPercent('30')
+    setMarkupPercent('33')
   }
 
   const handleCreate = async () => {
@@ -341,7 +341,7 @@ function NewClientDialog({
               <Input placeholder="+52 55 1234 5678" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>% Utilidad</Label>
+              <Label>% de Desc.</Label>
               <Input type="number" min="0" max="1000" step="0.5" value={markupPercent} onChange={(e) => setMarkupPercent(e.target.value)} />
             </div>
           </div>
@@ -767,7 +767,7 @@ function Step2Productos({
                     />
                   </div>
                   <div>
-                    <Label className="text-[10px] text-muted-foreground">% Utilidad</Label>
+                    <Label className="text-[10px] text-muted-foreground">% de Desc.</Label>
                     <Input
                       type="number"
                       min="0"
@@ -918,7 +918,7 @@ function Step3Resumen({
                   <TableHead>Concepto</TableHead>
                   <TableHead className="text-right">Cant.</TableHead>
                   <TableHead className="text-right">P. unitario</TableHead>
-                  <TableHead className="text-right">% Util.</TableHead>
+                  <TableHead className="text-right">% Desc.</TableHead>
                   <TableHead className="text-right">Subtotal</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1053,7 +1053,7 @@ export default function NuevaCotizacion() {
   const [sellerId, setSellerId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
-  const defaultMarkup = selectedClient ? parseFloat(selectedClient.markupPercent) : 30
+  const defaultMarkup = selectedClient ? parseFloat(selectedClient.markupPercent) : 33
 
   // Validation per step
   const canProceed =

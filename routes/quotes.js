@@ -13,7 +13,12 @@ async function loadQuoteFull(id) {
     include: {
       client: true,
       seller: { select: { name: true } },
-      items: { include: { product: true, service: true } },
+      items: {
+        include: {
+          product: { include: { images: { orderBy: { isPrimary: 'desc' }, take: 1 } } },
+          service: true,
+        },
+      },
     },
   })
 }
@@ -109,7 +114,7 @@ router.get('/:id/pdf', async (req, res) => {
     if (!quote) return res.status(404).json({ error: 'Quote not found' })
 
     const configRows = await prisma.config.findMany({
-      where: { key: { in: ['logos.principal', 'logos.secundario', 'logos.uso.pdf', 'cot.pdf.info'] } },
+      where: { key: { in: ['logos.principal', 'logos.secundario', 'logos.uso.pdf'] } },
     })
     const cfg = Object.fromEntries(configRows.map((r) => [r.key, r.value]))
     const logoUrl = cfg['logos.uso.pdf'] === 'Secundario' ? cfg['logos.secundario'] : cfg['logos.principal']
@@ -117,7 +122,7 @@ router.get('/:id/pdf', async (req, res) => {
     res.setHeader('Content-Type', 'application/pdf')
     res.setHeader('Content-Disposition', `attachment; filename="cotizacion-${quote.id.slice(-6)}.pdf"`)
     const stream = await renderToStream(
-      React.createElement(QuotePdfDocument, { quote, logoUrl: logoUrl || null, footerInfo: cfg['cot.pdf.info'] || null }),
+      React.createElement(QuotePdfDocument, { quote, logoUrl: logoUrl || null }),
     )
     stream.pipe(res)
   } catch (e) {

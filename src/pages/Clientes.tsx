@@ -112,7 +112,7 @@ export default function Clientes() {
   const openCreate = () => {
     setEditingClient(null)
     setEditStatus('ACTIVO')
-    reset({ name: '', email: '', phone: '', company: '', markupPercent: '30' })
+    reset({ name: '', email: '', phone: '', company: '', markupPercent: '33' })
     setDialogOpen(true)
   }
 
@@ -219,7 +219,7 @@ export default function Clientes() {
                   <TableHead>Empresa</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Teléfono</TableHead>
-                  <TableHead>% Utilidad</TableHead>
+                  <TableHead>% de Desc.</TableHead>
                   <TableHead># Cotizaciones</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
@@ -240,7 +240,7 @@ export default function Clientes() {
                       <TableCell className="text-muted-foreground">{c.company ?? '—'}</TableCell>
                       <TableCell>{c.email}</TableCell>
                       <TableCell className="text-muted-foreground">{c.phone ?? '—'}</TableCell>
-                      <TableCell>{c.markupPercent}%</TableCell>
+                      <TableCell className="font-medium">{c.markupPercent}%</TableCell>
                       <TableCell>{c._count?.quotes ?? 0}</TableCell>
                       <TableCell>
                         <Badge variant={STATUS_BADGE[c.status].variant}>{STATUS_BADGE[c.status].label}</Badge>
@@ -301,7 +301,7 @@ export default function Clientes() {
                 <Input placeholder="+52 55 1234 5678" {...register('phone')} />
               </div>
               <div className="space-y-2">
-                <Label>% Utilidad</Label>
+                <Label>% de Desc.</Label>
                 <Input type="number" min="0" max="100" step="0.01" {...register('markupPercent')} />
                 {errors.markupPercent && (
                   <p className="text-xs text-destructive">{errors.markupPercent.message}</p>
@@ -329,7 +329,7 @@ export default function Clientes() {
               </Button>
               <Button type="submit" disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {editingClient ? 'Actualizar' : 'Crear'}
+                {editingClient ? 'Guardar' : 'Crear'}
               </Button>
             </DialogFooter>
           </form>

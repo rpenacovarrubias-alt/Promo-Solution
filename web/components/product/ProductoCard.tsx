@@ -4,8 +4,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useCarrito } from '@/components/quote/CarritoContext'
-import { formatPrecio, getProductImageUrl, getMinQty } from '@/lib/api'
+import { getProductImageUrl, getMinQty } from '@/lib/api'
 import type { ApiProduct } from '@/lib/api'
+import { PriceGate } from './PriceGate'
 
 interface Props {
   producto: ApiProduct
@@ -79,7 +80,7 @@ export function ProductoCard({ producto }: Props) {
           <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-50">
             <div>
               <p className="text-navy-700 font-semibold text-base">
-                {formatPrecio(producto.finalPrice)}
+                <PriceGate price={producto.finalPrice} />
               </p>
               {minQty > 1 && (
                 <p className="text-xs text-gray-400">Mín. {minQty} pzas</p>

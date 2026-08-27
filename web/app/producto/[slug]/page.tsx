@@ -1,6 +1,7 @@
 import { getProductById, getProducts, formatPrecio, getProductImageUrl, getMinQty } from '@/lib/api'
 import { ProductoCard } from '@/components/product/ProductoCard'
 import { AddToCartButton } from '@/components/product/AddToCartButton'
+import { PriceGate } from '@/components/product/PriceGate'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
@@ -114,7 +115,9 @@ export default async function ProductoPage({ params }: Props) {
           )}
 
           <div className="my-5">
-            <p className="text-3xl font-bold text-navy-700">{formatPrecio(producto.finalPrice)}</p>
+            <p className="text-3xl font-bold text-navy-700">
+              <PriceGate price={producto.finalPrice} />
+            </p>
             {minQty > 1 && (
               <p className="text-sm text-gray-500 mt-1">Pedido mínimo: {minQty} piezas</p>
             )}

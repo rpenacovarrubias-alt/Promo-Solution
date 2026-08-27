@@ -66,12 +66,15 @@ export interface ApiQuoteResponse {
 }
 
 export interface ApiQuoteItem {
-  productId:   string
-  productName: string
-  quantity:    number
-  unitPrice:   number
-  markup:      number
-  subtotal:    number
+  productId:      string
+  productName:    string
+  serviceId:      string | null
+  printTechnique: string | null
+  quantity:       number
+  unitPrice:      number
+  printUnitCost:  number
+  markup:         number
+  subtotal:       number
 }
 
 // ── Helpers de presentación ───────────────────────────────────────────────────

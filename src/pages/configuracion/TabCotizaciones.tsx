@@ -4,13 +4,11 @@ import { Save, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import SectionPanel from './SectionPanel'
 
 const SECTIONS = [
   { key: 'general', label: 'General' },
-  { key: 'pdf', label: 'PDF' },
 ]
 
 type ConfigMap = Record<string, string>
@@ -25,7 +23,6 @@ export default function TabCotizaciones({ config, activeMenu, onMenuChange }: Pr
   return (
     <SectionPanel items={SECTIONS} activeKey={activeMenu} onSelect={onMenuChange}>
       {activeMenu === 'general' && <GeneralSection config={config} />}
-      {activeMenu === 'pdf' && <PdfSection config={config} />}
     </SectionPanel>
   )
 }
@@ -89,33 +86,6 @@ function GeneralSection({ config }: { config: ConfigMap }) {
           save({ 'cot.invitado': String(invitado), 'cot.tecnicaImpresion': String(tecnica) })
         }
       >
-        {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-        Actualizar
-      </Button>
-    </div>
-  )
-}
-
-// ── PDF ───────────────────────────────────────────────────────────────────────
-function PdfSection({ config }: { config: ConfigMap }) {
-  const { save, saving } = useSave()
-  const [info, setInfo] = useState(config['cot.pdf.info'] ?? '')
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <p className="font-semibold">Información en el PDF</p>
-        <p className="text-sm text-muted-foreground">
-          Texto que aparece en el pie del PDF de cotizaciones
-        </p>
-      </div>
-      <Textarea
-        value={info}
-        onChange={(e) => setInfo(e.target.value)}
-        rows={5}
-        placeholder="Información adicional para el PDF de cotizaciones..."
-      />
-      <Button disabled={saving} onClick={() => save({ 'cot.pdf.info': info })}>
         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
         Actualizar
       </Button>
