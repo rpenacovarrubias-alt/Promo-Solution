@@ -1,6 +1,8 @@
 import { getProducts, getCategories } from '@/lib/api'
 import { ProductoCard } from '@/components/product/ProductoCard'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
+import { SESSION_COOKIE } from '@/lib/session'
 import type { Metadata } from 'next'
 
 interface Props {
@@ -22,6 +24,10 @@ export default async function CatalogoPage({ searchParams }: Props) {
   const PER_PAGE = 24
   const page     = Math.max(1, parseInt(searchParams.page ?? '1'))
 
+  // Cliente con sesión -> precios calculados con SU % de descuento, no el
+  // generico de categoría (ver routes/public/products.js).
+  const token = cookies().get(SESSION_COOKIE)?.value
+
   const [productsRes, categories] = await Promise.all([
     getProducts({
       search:     searchParams.q,
@@ -29,7 +35,7 @@ export default async function CatalogoPage({ searchParams }: Props) {
       featured:   searchParams.featured === 'true',
       page,
       limit:      PER_PAGE,
-    }),
+    }, token),
     getCategories(),
   ])
 

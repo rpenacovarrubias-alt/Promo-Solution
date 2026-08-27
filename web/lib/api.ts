@@ -128,18 +128,22 @@ function getApiKey(): string {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type FetchInit = RequestInit & { next?: { revalidate?: number | false } }
+type FetchInit = RequestInit & { next?: { revalidate?: number | false }; token?: string }
 
+// `token` = sesión del cliente (cookie ps_session, leída server-side) para
+// que el backend calcule el precio con SU markupPercent en vez del genérico
+// de categoría. Con token, sin cache — el precio es distinto por cliente.
 async function apiFetch<T>(path: string, init?: FetchInit): Promise<T> {
+  const { token, ...rest } = init ?? {}
   const url = `${getBase()}${path}`
   const res = await fetch(url, {
-    // Next.js 14 cache: revalidar cada 60s (ignorado fuera de Next.js)
-    next: { revalidate: 60 },
-    ...init,
+    ...(token ? { cache: 'no-store' as const } : { next: { revalidate: 60 } }),
+    ...rest,
     headers: {
       'Content-Type': 'application/json',
       'X-API-Key': getApiKey(),
-      ...(init?.headers ?? {}),
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(rest.headers ?? {}),
     },
   })
   if (!res.ok) {
@@ -160,7 +164,7 @@ export interface GetProductsParams {
   limit?:     number
 }
 
-export async function getProducts(params: GetProductsParams = {}): Promise<ApiProductsResponse> {
+export async function getProducts(params: GetProductsParams = {}, token?: string): Promise<ApiProductsResponse> {
   const qs = new URLSearchParams()
   if (params.search)     qs.set('search',     params.search)
   if (params.categoryId) qs.set('categoryId', params.categoryId)
@@ -169,12 +173,12 @@ export async function getProducts(params: GetProductsParams = {}): Promise<ApiPr
   if (params.page)       qs.set('page',       String(params.page))
   if (params.limit)      qs.set('limit',      String(params.limit))
   const query = qs.toString()
-  return apiFetch<ApiProductsResponse>(`/api/public/products${query ? `?${query}` : ''}`)
+  return apiFetch<ApiProductsResponse>(`/api/public/products${query ? `?${query}` : ''}`, { token })
 }
 
-export async function getProductById(id: string): Promise<ApiProduct | null> {
+export async function getProductById(id: string, token?: string): Promise<ApiProduct | null> {
   try {
-    return await apiFetch<ApiProduct>(`/api/public/products/${id}`)
+    return await apiFetch<ApiProduct>(`/api/public/products/${id}`, { token })
   } catch {
     return null
   }

@@ -2,6 +2,7 @@ import { Router } from 'express'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 import prisma from '../_db.js'
+import { getSessionClient as resolveSessionClient } from './_session.js'
 
 const router = Router()
 
@@ -22,15 +23,8 @@ async function createSession(clientId) {
   return { token: session.token, expiresAt: session.expiresAt }
 }
 
-async function getSessionClient(req) {
-  const auth = req.headers.authorization ?? ''
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : null
-  if (!token) return null
-
-  const session = await prisma.clientSession.findUnique({ where: { token } })
-  if (!session || session.expiresAt < new Date()) return null
-
-  return prisma.client.findUnique({ where: { id: session.clientId }, select: SAFE_CLIENT_SELECT })
+function getSessionClient(req) {
+  return resolveSessionClient(req, SAFE_CLIENT_SELECT)
 }
 
 // ── Registro ────────────────────────────────────────────────────────────────

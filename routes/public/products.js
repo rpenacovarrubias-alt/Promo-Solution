@@ -1,19 +1,24 @@
 import { Router } from 'express'
 import prisma from '../_db.js'
+import { getSessionClient } from './_session.js'
 
 const router = Router()
 
-function calcFinalPrice(basePrice, utilityPercent) {
-  return parseFloat((parseFloat(basePrice) * (1 + parseFloat(utilityPercent ?? 0) / 100)).toFixed(2))
+function calcFinalPrice(basePrice, percent) {
+  return parseFloat((parseFloat(basePrice) * (1 + parseFloat(percent ?? 0) / 100)).toFixed(2))
 }
 
-function formatProduct(p) {
+// Si quien navega tiene sesión de cliente, el precio se calcula con SU
+// markupPercent (el mismo que ya manda al cotizar) — no con el % genérico de
+// la categoría. Así ve el mismo precio en el catálogo que en su cotización.
+function formatProduct(p, clientMarkup) {
+  const percent = clientMarkup ?? p.category?.utilityPercent
   return {
     id: p.id,
     name: p.name,
     description: p.description ?? null,
     basePrice: parseFloat(p.basePrice),
-    finalPrice: calcFinalPrice(p.basePrice, p.category?.utilityPercent),
+    finalPrice: calcFinalPrice(p.basePrice, percent),
     isActive: p.isActive,
     isFeatured: p.isFeatured,
     stock: p.stock ?? null,
@@ -47,7 +52,7 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    const [products, total] = await Promise.all([
+    const [products, total, sessionClient] = await Promise.all([
       prisma.product.findMany({
         where,
         include: {
@@ -62,11 +67,13 @@ router.get('/', async (req, res) => {
         take: limitNum,
       }),
       prisma.product.count({ where }),
+      getSessionClient(req, { markupPercent: true }),
     ])
+    const clientMarkup = sessionClient ? parseFloat(sessionClient.markupPercent) : null
 
     const totalPages = Math.ceil(total / limitNum)
     return res.json({
-      data: products.map(formatProduct),
+      data: products.map((p) => formatProduct(p, clientMarkup)),
       pagination: { page: pageNum, limit: limitNum, total, totalPages, hasNext: pageNum < totalPages, hasPrev: pageNum > 1 },
     })
   } catch (e) {
@@ -78,16 +85,20 @@ router.get('/', async (req, res) => {
 // GET /api/public/products/:id
 router.get('/:id', async (req, res) => {
   try {
-    const product = await prisma.product.findUnique({
-      where: { id: req.params.id },
-      include: {
-        provider: { select: { id: true, name: true, slug: true } },
-        category: { select: { id: true, name: true, utilityPercent: true } },
-        images: true, colors: true, variants: true,
-      },
-    })
+    const [product, sessionClient] = await Promise.all([
+      prisma.product.findUnique({
+        where: { id: req.params.id },
+        include: {
+          provider: { select: { id: true, name: true, slug: true } },
+          category: { select: { id: true, name: true, utilityPercent: true } },
+          images: true, colors: true, variants: true,
+        },
+      }),
+      getSessionClient(req, { markupPercent: true }),
+    ])
     if (!product || !product.isActive || !product.isVisible) return res.status(404).json({ error: 'Producto no encontrado' })
-    return res.json(formatProduct(product))
+    const clientMarkup = sessionClient ? parseFloat(sessionClient.markupPercent) : null
+    return res.json(formatProduct(product, clientMarkup))
   } catch (e) {
     return res.status(500).json({ error: 'Error interno del servidor' })
   }

@@ -4,6 +4,8 @@ import { AddToCartButton } from '@/components/product/AddToCartButton'
 import { PriceGate } from '@/components/product/PriceGate'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
+import { cookies } from 'next/headers'
+import { SESSION_COOKIE } from '@/lib/session'
 import type { Metadata } from 'next'
 
 interface Props { params: { slug: string } }
@@ -18,7 +20,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductoPage({ params }: Props) {
-  const found = await getProductById(params.slug)
+  // Cliente con sesión -> precio calculado con SU % de descuento (ver
+  // routes/public/products.js) — mismo criterio que el catálogo.
+  const token = cookies().get(SESSION_COOKIE)?.value
+
+  const found = await getProductById(params.slug, token)
   if (!found) notFound()
   const producto = found   // TypeScript sabe que no es null
 
@@ -26,7 +32,7 @@ export default async function ProductoPage({ params }: Props) {
   const relacionadosRes = await getProducts({
     categoryId: producto.category?.id,
     limit:      5,
-  })
+  }, token)
   const relacionados = relacionadosRes.data.filter(p => p.id !== producto.id).slice(0, 4)
 
   const imgUrl = getProductImageUrl(producto)
