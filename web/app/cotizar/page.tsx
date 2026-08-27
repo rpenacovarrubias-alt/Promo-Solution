@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCarrito } from '@/components/quote/CarritoContext'
 import { formatPrecio } from '@/lib/api'
+import type { ApiService } from '@/lib/api'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -15,11 +16,24 @@ interface FormData {
 }
 
 export default function CotizarPage() {
-  const { items, remove, update, subtotal, clear } = useCarrito()
+  const { items, remove, update, setService, subtotal, clear } = useCarrito()
   const [form, setForm]       = useState<FormData>({ nombre:'', empresa:'', email:'', telefono:'', notas:'' })
   const [sending, setSending] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError]     = useState<string | null>(null)
+  const [services, setServices] = useState<ApiService[]>([])
+
+  useEffect(() => {
+    fetch('/api/services')
+      .then(res => res.json())
+      .then(data => setServices(Array.isArray(data) ? data : []))
+      .catch(() => setServices([]))
+  }, [])
+
+  const handleServiceChange = (producto_id: string, serviceId: string) => {
+    const service = services.find(s => s.id === serviceId)
+    setService(producto_id, service?.id ?? null, service?.name ?? null, service?.unitPrice ?? 0)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,6 +56,7 @@ export default function CotizarPage() {
           items: items.map(i => ({
             productId: i.producto_id,
             quantity:  i.cantidad,
+            ...(i.servicioId && { serviceId: i.servicioId }),
           })),
         }),
       })
@@ -98,6 +113,23 @@ export default function CotizarPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-800 text-sm line-clamp-2">{item.nombre}</p>
                   <p className="text-navy-700 font-semibold text-sm mt-1">{formatPrecio(item.finalPrice)}</p>
+
+                  <div className="mt-2">
+                    <label className="block text-[11px] text-gray-500 mb-1">Técnica de impresión</label>
+                    <select
+                      value={item.servicioId ?? ''}
+                      onChange={e => handleServiceChange(item.producto_id, e.target.value)}
+                      className="w-full max-w-xs text-xs border border-gray-200 rounded-lg px-2 py-1.5
+                                 focus:outline-none focus:ring-2 focus:ring-navy-700/20 focus:border-navy-700"
+                    >
+                      <option value="">Sin técnica</option>
+                      {services.map(s => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} (+{formatPrecio(s.unitPrice)} c/u)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <button onClick={() => remove(item.producto_id)}
@@ -116,8 +148,11 @@ export default function CotizarPage() {
                       className="px-2 py-1 hover:bg-gray-50">+</button>
                   </div>
                   <p className="text-sm font-semibold text-gray-800">
-                    {formatPrecio(item.finalPrice * item.cantidad)}
+                    {formatPrecio((item.finalPrice + (item.servicioCosto ?? 0)) * item.cantidad)}
                   </p>
+                  {item.servicioCosto ? (
+                    <p className="text-[11px] text-gray-400">incl. {item.servicioNombre}</p>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -130,15 +165,18 @@ export default function CotizarPage() {
               <div className="space-y-2 text-sm">
                 {items.map(i => (
                   <div key={i.producto_id} className="flex justify-between gap-2">
-                    <span className="text-gray-600 truncate">{i.nombre} ×{i.cantidad}</span>
-                    <span className="font-medium flex-shrink-0">{formatPrecio(i.finalPrice * i.cantidad)}</span>
+                    <span className="text-gray-600 truncate">
+                      {i.nombre} ×{i.cantidad}{i.servicioNombre ? ` · ${i.servicioNombre}` : ''}
+                    </span>
+                    <span className="font-medium flex-shrink-0">
+                      {formatPrecio((i.finalPrice + (i.servicioCosto ?? 0)) * i.cantidad)}
+                    </span>
                   </div>
                 ))}
                 <div className="border-t border-gray-100 pt-2 mt-2 flex justify-between font-semibold text-base">
                   <span>Subtotal</span>
                   <span className="text-navy-700">{formatPrecio(subtotal)}</span>
                 </div>
-                <p className="text-xs text-gray-400">* Precios no incluyen decorado/impresión</p>
               </div>
             </div>
 
@@ -166,7 +204,7 @@ export default function CotizarPage() {
                 <label className="block text-xs font-medium text-gray-600 mb-1">Notas</label>
                 <textarea rows={2} value={form.notas}
                   onChange={e => setForm(p => ({ ...p, notas: e.target.value }))}
-                  placeholder="Colores, técnica de impresión, fecha requerida..."
+                  placeholder="Colores, fecha requerida, instrucciones especiales..."
                   className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg
                              focus:outline-none focus:ring-2 focus:ring-navy-700/20 focus:border-navy-700 resize-none"/>
               </div>

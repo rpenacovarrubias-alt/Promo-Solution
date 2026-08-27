@@ -39,6 +39,16 @@ export interface ApiProvider {
   slug: string
 }
 
+/** Técnica de impresión — se da de alta en el CRM (Servicios) con su precio. */
+export interface ApiService {
+  id:          string
+  name:        string
+  type:        string
+  unitPrice:   number
+  description: string | null
+  imageUrl:    string | null
+}
+
 export interface ApiPagination {
   page:       number
   limit:      number
@@ -182,6 +192,12 @@ export async function getProviders(): Promise<ApiProvider[]> {
   return apiFetch<ApiProvider[]>('/api/public/providers')
 }
 
+// ── Técnicas de impresión (Servicios) ─────────────────────────────────────────
+
+export async function getServices(): Promise<ApiService[]> {
+  return apiFetch<ApiService[]>('/api/public/services')
+}
+
 // ── Cotizaciones ──────────────────────────────────────────────────────────────
 
 export interface CreateQuotePayload {
@@ -192,7 +208,7 @@ export interface CreateQuotePayload {
     company?: string
   }
   channel: 'TELEGRAM' | 'WHATSAPP' | 'CHAT' | 'EMAIL'
-  items: { productId: string; quantity: number }[]
+  items: { productId: string; quantity: number; serviceId?: string }[]
   notes?: string
 }
 

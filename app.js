@@ -29,6 +29,7 @@ import { requireApiKey }        from './routes/public/auth.js'
 import publicProductsRouter     from './routes/public/products.js'
 import publicCategoriesRouter   from './routes/public/categories.js'
 import publicProvidersRouter    from './routes/public/providers.js'
+import publicServicesRouter     from './routes/public/services.js'
 import publicQuotesRouter       from './routes/public/quotes.js'
 import publicCustomerAuthRouter from './routes/public/customerAuth.js'
 
@@ -59,6 +60,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/public/products',   requireApiKey, publicProductsRouter)
 app.use('/api/public/categories', requireApiKey, publicCategoriesRouter)
 app.use('/api/public/providers',  requireApiKey, publicProvidersRouter)
+app.use('/api/public/services',   requireApiKey, publicServicesRouter)
 app.use('/api/public/quotes',     requireApiKey, publicQuotesRouter)
 app.use('/api/public/auth',       requireApiKey, publicCustomerAuthRouter)
 
