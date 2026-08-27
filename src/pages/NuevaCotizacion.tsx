@@ -91,16 +91,20 @@ interface CartItem {
   quantity: number
   markup: number
   subtotal: number
-  printTechnique: string
   manualPrice: number | null
+  // Técnica de impresión adjunta a la línea (solo aplica a items type 'product',
+  // igual que en el sitio público) — sale del catálogo real de Servicios, no es texto libre.
+  servicioId?: string | null
+  servicioNombre?: string | null
+  servicioCosto?: number  // por pieza
 }
-
-const PRINT_TECHNIQUES = ['Sin técnica', 'Estampado', 'Bordado', 'Grabado', 'Sublimación', 'Otro']
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const calcSubtotal = (basePrice: number, quantity: number, markup: number) =>
-  basePrice * quantity * (1 + markup / 100)
+// El costo de la técnica va a costo (sin markup encima) — mismo criterio que
+// el sitio público y que lib/quotes.js: (precio con utilidad + técnica) × cantidad.
+const calcSubtotal = (basePrice: number, quantity: number, markup: number, servicioCosto = 0) =>
+  (basePrice * (1 + markup / 100) + servicioCosto) * quantity
 
 const IVA_RATE = 0.16
 
@@ -424,7 +428,9 @@ function Step2Productos({
   )
 
   const lineSubtotal = (i: CartItem) =>
-    i.manualPrice !== null ? i.manualPrice * i.quantity : calcSubtotal(i.basePrice, i.quantity, i.markup)
+    i.manualPrice !== null
+      ? i.manualPrice * i.quantity
+      : calcSubtotal(i.basePrice, i.quantity, i.markup, i.servicioCosto ?? 0)
 
   const addProduct = (p: Product) => {
     const key = `product-${p.id}`
@@ -452,8 +458,10 @@ function Step2Productos({
           quantity: 1,
           markup,
           subtotal: calcSubtotal(basePrice, 1, markup),
-          printTechnique: 'Sin técnica',
           manualPrice: null,
+          servicioId: null,
+          servicioNombre: null,
+          servicioCosto: 0,
         },
       ])
     }
@@ -484,7 +492,6 @@ function Step2Productos({
           quantity: 1,
           markup,
           subtotal: calcSubtotal(basePrice, 1, markup),
-          printTechnique: 'Sin técnica',
           manualPrice: null,
         },
       ])
@@ -493,13 +500,31 @@ function Step2Productos({
 
   const updateItem = (
     key: string,
-    field: 'quantity' | 'markup' | 'printTechnique' | 'manualPrice',
+    field: 'quantity' | 'markup' | 'manualPrice',
     value: number | string | null,
   ) => {
     onCartChange(
       cart.map((i) => {
         if (i.key !== key) return i
         const updated = { ...i, [field]: value } as CartItem
+        return { ...updated, subtotal: lineSubtotal(updated) }
+      }),
+    )
+  }
+
+  // Adjunta/quita una técnica de impresión (Service real, con precio del CRM)
+  // a la línea de un producto — mismo criterio que el sitio público.
+  const updateItemService = (key: string, serviceId: string) => {
+    const service = services.find((s) => s.id === serviceId)
+    onCartChange(
+      cart.map((i) => {
+        if (i.key !== key) return i
+        const updated: CartItem = {
+          ...i,
+          servicioId: service?.id ?? null,
+          servicioNombre: service?.name ?? null,
+          servicioCosto: service ? parseFloat(service.unitPrice) : 0,
+        }
         return { ...updated, subtotal: lineSubtotal(updated) }
       }),
     )
@@ -737,22 +762,27 @@ function Step2Productos({
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div>
-                  <Label className="text-[10px] text-muted-foreground">Técnica de impresión</Label>
-                  <Select
-                    value={item.printTechnique}
-                    onValueChange={(v) => updateItem(item.key, 'printTechnique', v)}
-                  >
-                    <SelectTrigger className="h-8 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PRINT_TECHNIQUES.map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {item.type === 'product' && (
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Técnica de impresión</Label>
+                    <Select
+                      value={item.servicioId ?? 'none'}
+                      onValueChange={(v) => updateItemService(item.key, v === 'none' ? '' : v)}
+                    >
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue placeholder="Sin técnica" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sin técnica</SelectItem>
+                        {services.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.name} (+{formatCurrency(parseFloat(s.unitPrice))} c/u)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label className="text-[10px] text-muted-foreground">Cantidad</Label>
@@ -813,6 +843,7 @@ function Step2Productos({
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">
                     Precio unitario: {formatCurrency(item.manualPrice ?? item.basePrice * (1 + item.markup / 100))}
+                    {item.servicioCosto ? ` + ${formatCurrency(item.servicioCosto)} técnica` : ''}
                   </span>
                   <span className="font-semibold">
                     {formatCurrency(item.subtotal)}
@@ -928,14 +959,12 @@ function Step3Resumen({
                     <TableCell>
                       <p className="font-medium text-sm">{item.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {[item.providerName, item.printTechnique !== 'Sin técnica' ? item.printTechnique : null]
-                          .filter(Boolean)
-                          .join(' · ')}
+                        {[item.providerName, item.servicioNombre].filter(Boolean).join(' · ')}
                       </p>
                     </TableCell>
                     <TableCell className="text-right">{item.quantity}</TableCell>
                     <TableCell className="text-right">
-                      {formatCurrency(item.manualPrice ?? item.basePrice * (1 + item.markup / 100))}
+                      {formatCurrency((item.manualPrice ?? item.basePrice * (1 + item.markup / 100)) + (item.servicioCosto ?? 0))}
                     </TableCell>
                     <TableCell className="text-right">{item.manualPrice !== null ? 'manual' : `${item.markup}%`}</TableCell>
                     <TableCell className="text-right font-medium">
@@ -1081,12 +1110,13 @@ export default function NuevaCotizacion() {
       status: asDraft ? 'DRAFT' : 'SENT',
       items: cart.map((item) => ({
         productId: item.type === 'product' ? item.id : null,
-        serviceId: item.type === 'service' ? item.id : null,
+        serviceId: item.type === 'service' ? item.id : (item.servicioId ?? null),
         quantity: item.quantity,
         unitPrice: (item.manualPrice ?? item.basePrice).toFixed(2),
         markup: (item.manualPrice !== null ? 0 : item.markup).toFixed(2),
         subtotal: item.subtotal.toFixed(2),
-        printTechnique: item.printTechnique !== 'Sin técnica' ? item.printTechnique : null,
+        printTechnique: item.type === 'product' ? item.servicioNombre ?? null : null,
+        printUnitCost: item.type === 'product' ? (item.servicioCosto ?? 0).toFixed(2) : '0',
       })),
     }
 

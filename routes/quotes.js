@@ -83,6 +83,7 @@ router.post('/', async (req, res) => {
             markup: parseFloat(item.markup),
             subtotal: parseFloat(item.subtotal),
             printTechnique: item.printTechnique || null,
+            printUnitCost: item.printUnitCost ? parseFloat(item.printUnitCost) : 0,
           })),
         } : undefined,
       },
