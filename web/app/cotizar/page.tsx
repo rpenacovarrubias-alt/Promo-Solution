@@ -15,8 +15,12 @@ interface FormData {
   notas:    string
 }
 
+const IVA_RATE = 0.16
+
 export default function CotizarPage() {
   const { items, remove, update, setService, subtotal, clear } = useCarrito()
+  const iva   = subtotal * IVA_RATE
+  const total = subtotal + iva
   const [form, setForm]       = useState<FormData>({ nombre:'', empresa:'', email:'', telefono:'', notas:'' })
   const [sending, setSending] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
@@ -173,9 +177,19 @@ export default function CotizarPage() {
                     </span>
                   </div>
                 ))}
-                <div className="border-t border-gray-100 pt-2 mt-2 flex justify-between font-semibold text-base">
-                  <span>Subtotal</span>
-                  <span className="text-navy-700">{formatPrecio(subtotal)}</span>
+                <div className="border-t border-gray-100 pt-2 mt-2 space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="font-medium">{formatPrecio(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">IVA (16%)</span>
+                    <span className="font-medium">{formatPrecio(iva)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-base pt-1">
+                    <span>Total</span>
+                    <span className="text-navy-700">{formatPrecio(total)}</span>
+                  </div>
                 </div>
               </div>
             </div>
