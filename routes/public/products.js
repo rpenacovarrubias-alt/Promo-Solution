@@ -9,10 +9,15 @@ function calcFinalPrice(basePrice, percent) {
 }
 
 // Si quien navega tiene sesión de cliente, el precio se calcula con SU
-// markupPercent (el mismo que ya manda al cotizar) — no con el % genérico de
-// la categoría. Así ve el mismo precio en el catálogo que en su cotización.
-function formatProduct(p, clientMarkup) {
-  const percent = clientMarkup ?? p.category?.utilityPercent
+// markupPercent (el mismo que ya manda al cotizar). Sin sesión (invitado),
+// usa el mismo default que Client.markupPercent en prisma/schema.prisma —
+// NO Category.utilityPercent: ese campo ya no participa en ningún cálculo
+// de precio (ver lib/quotes.js) y está en 0% en casi todas las categorías,
+// lo que hacía que el invitado viera el precio crudo del proveedor.
+const GUEST_MARKUP_PERCENT = 33
+
+export function formatProduct(p, clientMarkup) {
+  const percent = clientMarkup ?? GUEST_MARKUP_PERCENT
   return {
     id: p.id,
     name: p.name,
@@ -55,7 +60,7 @@ router.get('/', async (req, res) => {
       prisma.product.findMany({
         where,
         include: {
-          category: { select: { id: true, name: true, utilityPercent: true } },
+          category: { select: { id: true, name: true } },
           images:   { where: { isPrimary: true }, take: 1 },
           colors:   { take: 5 },
           variants: { orderBy: { minQty: 'asc' }, take: 3 },
@@ -87,7 +92,7 @@ router.get('/:id', async (req, res) => {
       prisma.product.findUnique({
         where: { id: req.params.id },
         include: {
-          category: { select: { id: true, name: true, utilityPercent: true } },
+          category: { select: { id: true, name: true } },
           images: true, colors: true, variants: true,
         },
       }),
