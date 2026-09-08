@@ -36,6 +36,7 @@ import publicContactRouter      from './routes/public/contact.js'
 
 // ── Webhooks (Julio — agente de ventas IA) ───────────────────────────────────
 import telegramWebhookRouter    from './routes/webhooks/telegram.js'
+import facebookWebhookRouter    from './routes/webhooks/facebook.js'
 
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -49,7 +50,11 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
 }))
-app.use(express.json({ limit: '2mb' }))
+// `verify` guarda el body crudo antes de parsear — lo necesita el webhook de
+// Meta (routes/webhooks/facebook.js) para validar X-Hub-Signature-256, la
+// firma se calcula sobre los bytes exactos que Meta envió, no sobre el JSON
+// ya parseado/re-serializado (podría no ser byte-a-byte idéntico).
+app.use(express.json({ limit: '2mb', verify: (req, _res, buf) => { req.rawBody = buf } }))
 app.use(express.urlencoded({ extended: false }))
 
 // ── Health check ─────────────────────────────────────────────────────────────
@@ -68,6 +73,7 @@ app.use('/api/public/contact',    requireApiKey, publicContactRouter)
 
 // ── Webhooks — sin X-API-Key, se autentican con su propio secret de plataforma ─
 app.use('/api/webhooks/telegram', telegramWebhookRouter)
+app.use('/api/webhooks/facebook', facebookWebhookRouter)
 
 // ── Rutas API admin ───────────────────────────────────────────────────────────
 app.use('/api/dashboard',   dashboardRouter)
