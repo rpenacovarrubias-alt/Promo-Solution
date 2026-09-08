@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export interface Client {
   id:        string
@@ -37,6 +38,7 @@ async function parseError(res: Response): Promise<string> {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [client, setClient]   = useState<Client | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -55,8 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!res.ok) return { ok: false as const, error: await parseError(res) }
     const data = await res.json()
     setClient(data.client)
+    // Los precios del catálogo/producto se calculan en Server Components a
+    // partir de la cookie de sesión — sin refresh, el usuario ve el HTML ya
+    // renderizado ANTES de iniciar sesión (precio genérico, sin su %) aunque
+    // el contexto ya lo marque como logueado. router.refresh() vuelve a
+    // ejecutar esos Server Components con la cookie recién puesta.
+    router.refresh()
     return { ok: true as const }
-  }, [])
+  }, [router])
 
   const register = useCallback(async (input: RegisterInput) => {
     const res = await fetch('/api/auth/register', {
@@ -67,13 +75,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!res.ok) return { ok: false as const, error: await parseError(res) }
     const data = await res.json()
     setClient(data.client)
+    router.refresh()
     return { ok: true as const }
-  }, [])
+  }, [router])
 
   const logout = useCallback(async () => {
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
     setClient(null)
-  }, [])
+    router.refresh()
+  }, [router])
 
   return (
     <Ctx.Provider value={{ client, loading, login, register, logout }}>

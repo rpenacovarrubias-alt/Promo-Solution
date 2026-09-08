@@ -5,7 +5,7 @@ const router = Router()
 
 const DEFAULTS = {
   ivaPercent: '16',
-  defaultMarkup: '30',
+  defaultMarkup: '33',
   companyName: 'Promo Solution',
   logoUrl: '',
 }
