@@ -1,5 +1,6 @@
 import { getProducts } from '@/lib/api'
 import { ProductoCard } from '@/components/product/ProductoCard'
+import { HeroSlider } from '@/components/home/HeroSlider'
 import Link from 'next/link'
 import Image from 'next/image'
 import { cookies } from 'next/headers'
@@ -35,14 +36,7 @@ export default async function HomePage() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden text-white">
-        <Image
-          src="/hero.jpg"
-          alt=""
-          fill
-          priority
-          unoptimized
-          className="object-cover"
-        />
+        <HeroSlider />
         <div className="absolute inset-0 bg-gradient-to-r from-navy-900/95 via-navy-900/65 to-navy-900/10" />
         <Image
           src="/hero-badge.png"
