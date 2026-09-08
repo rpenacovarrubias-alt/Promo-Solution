@@ -103,10 +103,7 @@ export default async function ProductoPage({ params }: Props) {
         <div>
           <div className="flex items-start justify-between gap-4 mb-3">
             <div>
-              {producto.provider && (
-                <p className="text-xs text-gray-400 font-mono">{producto.provider.slug}</p>
-              )}
-              <h1 className="text-2xl font-bold text-gray-900 mt-1">{producto.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{producto.name}</h1>
             </div>
             {producto.isActive
               ? <span className="badge-disponible flex-shrink-0">
@@ -137,7 +134,6 @@ export default async function ProductoPage({ params }: Props) {
           <div className="bg-gray-50 rounded-xl p-4 mb-5 space-y-2.5">
             <h3 className="font-semibold text-gray-800 text-sm mb-3">Ficha técnica</h3>
             {[
-              { label: 'Proveedor', value: producto.provider?.name },
               ...producto.variants.map((v, i) => [
                 { label: i === 0 ? 'Talla / Material' : `Variante ${i + 1}`, value: [v.size, v.material].filter(Boolean).join(' — ') || null },
               ]).flat(),

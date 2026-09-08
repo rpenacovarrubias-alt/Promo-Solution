@@ -65,10 +65,7 @@ export function ProductoCard({ producto }: Props) {
         {/* Info */}
         <div className="p-3 flex flex-col flex-1 gap-2">
           <div>
-            {producto.provider && (
-              <p className="text-xs text-gray-400 font-mono">{producto.provider.slug}</p>
-            )}
-            <h3 className="text-sm font-medium text-gray-800 line-clamp-2 leading-snug mt-0.5">
+            <h3 className="text-sm font-medium text-gray-800 line-clamp-2 leading-snug">
               {producto.name}
             </h3>
           </div>

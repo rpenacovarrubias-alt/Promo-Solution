@@ -2,6 +2,8 @@ import { getProducts } from '@/lib/api'
 import { ProductoCard } from '@/components/product/ProductoCard'
 import Link from 'next/link'
 import Image from 'next/image'
+import { cookies } from 'next/headers'
+import { SESSION_COOKIE } from '@/lib/session'
 import { CupSoda, Laptop, Shirt, Leaf, NotebookText, KeyRound, Dumbbell, PenTool } from 'lucide-react'
 
 const CATEGORIAS_HERO = [
@@ -16,9 +18,14 @@ const CATEGORIAS_HERO = [
 ]
 
 export default async function HomePage() {
+  // Cliente con sesión -> precios calculados con SU % de descuento, no el
+  // genérico de categoría (ver routes/public/products.js) — mismo criterio
+  // que /catalogo y /producto/[slug].
+  const token = cookies().get(SESSION_COOKIE)?.value
+
   const [destacadosRes, recientesRes] = await Promise.all([
-    getProducts({ featured: true,  limit: 8 }),
-    getProducts({ limit: 8 }),
+    getProducts({ featured: true,  limit: 8 }, token),
+    getProducts({ limit: 8 }, token),
   ])
 
   const destacados = destacadosRes.data
@@ -150,22 +157,6 @@ export default async function HomePage() {
           </div>
         </section>
       )}
-
-      {/* Proveedores */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <p className="text-center text-sm text-gray-400 mb-6">
-          Trabajamos con proveedores líderes en México
-        </p>
-        <div className="flex flex-wrap justify-center items-center gap-6">
-          {['4 For Promotional', 'Promo Opción', 'Innovation', 'Doble Vela', 'PROMO SOLUTION'].map(p => (
-            <span key={p}
-              className="text-sm font-medium text-gray-400 border border-gray-100
-                         px-4 py-2 rounded-full">
-              {p}
-            </span>
-          ))}
-        </div>
-      </section>
     </>
   )
 }

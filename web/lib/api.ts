@@ -21,7 +21,6 @@ export interface ApiProduct {
   isFeatured:  boolean
   stock:       number | null
   category:    { id: string; name: string } | null
-  provider:    { id: string; name: string; slug: string } | null
   images:      { url: string; isPrimary: boolean }[]
   colors:      { name: string; hex: string | null }[]
   variants:    { size: string | null; material: string | null; minQty: number }[]

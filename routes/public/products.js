@@ -23,7 +23,6 @@ function formatProduct(p, clientMarkup) {
     isFeatured: p.isFeatured,
     stock: p.stock ?? null,
     category: p.category ? { id: p.category.id, name: p.category.name } : null,
-    provider: p.provider ? { id: p.provider.id, name: p.provider.name, slug: p.provider.slug } : null,
     images: (p.images ?? [])
       .sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0))
       .map(img => ({ url: img.url, isPrimary: img.isPrimary })),
@@ -56,7 +55,6 @@ router.get('/', async (req, res) => {
       prisma.product.findMany({
         where,
         include: {
-          provider: { select: { id: true, name: true, slug: true } },
           category: { select: { id: true, name: true, utilityPercent: true } },
           images:   { where: { isPrimary: true }, take: 1 },
           colors:   { take: 5 },
@@ -89,7 +87,6 @@ router.get('/:id', async (req, res) => {
       prisma.product.findUnique({
         where: { id: req.params.id },
         include: {
-          provider: { select: { id: true, name: true, slug: true } },
           category: { select: { id: true, name: true, utilityPercent: true } },
           images: true, colors: true, variants: true,
         },
