@@ -1091,23 +1091,19 @@ export default function NuevaCotizacion() {
   const handleNext = () => setStep((s) => s + 1)
   const handleBack = () => setStep((s) => s - 1)
 
-  const handleSave = async (asDraft: boolean) => {
-    if (!selectedClient) return
-    setIsSaving(true)
-
+  const buildPayload = (channelsForRecord: Channel[]) => {
     const subtotal = cart.reduce((sum, i) => sum + i.subtotal, 0)
     const iva = subtotal * IVA_RATE
     const total = subtotal + iva
-
-    const payload = {
-      clientId: selectedClient.id,
+    return {
+      clientId: selectedClient!.id,
       sellerId,
-      channels: asDraft ? [] : channels,
+      channels: channelsForRecord,
       subtotal: subtotal.toFixed(2),
       iva: iva.toFixed(2),
       total: total.toFixed(2),
       notes: notes || null,
-      status: asDraft ? 'DRAFT' : 'SENT',
+      status: 'DRAFT',
       items: cart.map((item) => ({
         productId: item.type === 'product' ? item.id : null,
         serviceId: item.type === 'service' ? item.id : (item.servicioId ?? null),
@@ -1122,18 +1118,55 @@ export default function NuevaCotizacion() {
         printUnitCost: item.type === 'product' ? (item.servicioCosto ?? 0).toFixed(2) : '0',
       })),
     }
+  }
 
+  // Siempre crea como DRAFT — el estatus SENT solo lo pone /quotes/:id/send
+  // una vez que el correo de verdad salió (ver handleSaveAndSend).
+  const createQuote = async (channelsForRecord: Channel[]) => {
+    const res = await fetch('/api/quotes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildPayload(channelsForRecord)),
+    })
+    if (!res.ok) throw new Error('Error al guardar la cotización')
+    return res.json()
+  }
+
+  const handleSaveDraft = async () => {
+    if (!selectedClient) return
+    setIsSaving(true)
     try {
-      const res = await fetch('/api/quotes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) throw new Error()
-      toast.success(asDraft ? 'Cotización guardada como borrador' : 'Cotización creada y enviada')
+      await createQuote([])
+      toast.success('Cotización guardada como borrador')
       navigate('/cotizaciones')
-    } catch {
-      toast.error('Error al guardar la cotización')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al guardar la cotización')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Guarda y, si el cliente eligió el canal Email, manda el PDF de una vez
+  // (mismo endpoint que usa "Reenviar" en la lista de Cotizaciones) —
+  // WhatsApp/Telegram todavía no están conectados, quedan solo como registro.
+  const handleSaveAndSend = async () => {
+    if (!selectedClient) return
+    setIsSaving(true)
+    try {
+      const quote = await createQuote(channels)
+      if (channels.includes('EMAIL')) {
+        const sendRes = await fetch(`/api/quotes/${quote.id}/send`, { method: 'POST' })
+        const sendBody = await sendRes.json().catch(() => ({}))
+        if (!sendRes.ok) {
+          toast.error(sendBody.error || 'La cotización se guardó, pero no se pudo enviar el correo')
+          navigate('/cotizaciones')
+          return
+        }
+      }
+      toast.success('Cotización creada y enviada')
+      navigate('/cotizaciones')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al guardar la cotización')
     } finally {
       setIsSaving(false)
     }
@@ -1194,7 +1227,7 @@ export default function NuevaCotizacion() {
 
         <div className="flex gap-3">
           {step === 2 && (
-            <Button variant="outline" onClick={() => handleSave(true)} disabled={isSaving}>
+            <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving}>
               {isSaving ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
@@ -1208,13 +1241,13 @@ export default function NuevaCotizacion() {
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={() => handleSave(false)} disabled={isSaving || !canProceed}>
+            <Button onClick={handleSaveAndSend} disabled={isSaving || !canProceed}>
               {isSaving ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Send className="mr-2 h-4 w-4" />
               )}
-              Crear cotización
+              Guardar y enviar
             </Button>
           )}
         </div>

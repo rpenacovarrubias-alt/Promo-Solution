@@ -3,6 +3,7 @@ import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 import prisma from '../_db.js'
 import { getSessionClient as resolveSessionClient } from './_session.js'
+import { sendMail } from '../../lib/mail.js'
 
 const router = Router()
 
@@ -107,9 +108,6 @@ router.get('/me', async (req, res) => {
 })
 
 // ── Olvidé mi contraseña ────────────────────────────────────────────────────
-// TODO: falta conectar el envío real del correo (SMTP_* en .env aún sin usar en
-// ningún lado del código). Por ahora el link se imprime en el log del servidor
-// para poder probar el flujo de punta a punta.
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body ?? {}
   if (!email) return res.status(400).json({ error: 'email es requerido' })
@@ -120,7 +118,16 @@ router.post('/forgot-password', async (req, res) => {
     const resetTokenExpiresAt = new Date(Date.now() + RESET_MINUTES * 60 * 1000)
     await prisma.client.update({ where: { id: client.id }, data: { resetToken, resetTokenExpiresAt } })
     const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://promosolution.com.mx'}/restablecer-contrasena?token=${resetToken}`
-    console.log(`[public/auth forgot-password] TODO enviar por email a ${email}: ${resetUrl}`)
+    await sendMail({
+      to: email,
+      subject: 'Restablece tu contraseña — Promo Solution',
+      html: `
+        <p>Hola ${client.name},</p>
+        <p>Recibimos una solicitud para restablecer tu contraseña en Promo Solution. Este enlace es válido por ${RESET_MINUTES} minutos:</p>
+        <p><a href="${resetUrl}">${resetUrl}</a></p>
+        <p>Si tú no lo pediste, puedes ignorar este correo.</p>
+      `,
+    })
   }
 
   // Respuesta genérica siempre — no revela si el correo existe o no.

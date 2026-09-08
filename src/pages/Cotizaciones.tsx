@@ -84,18 +84,15 @@ export default function Cotizaciones() {
 
   const handleResend = async (quoteId: string) => {
     try {
-      const res = await fetch(`/api/quotes/${quoteId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'SENT' }),
-      })
-      if (!res.ok) throw new Error()
-      toast.success('Cotización reenviada correctamente')
+      const res = await fetch(`/api/quotes/${quoteId}/send`, { method: 'POST' })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(body.error || 'Error al enviar cotización')
+      toast.success('Cotización enviada por correo (ventas@promosolution.com.mx)')
       setQuotes((prev) =>
-        prev.map((q) => (q.id === quoteId ? { ...q, status: 'SENT' } : q)),
+        prev.map((q) => (q.id === quoteId ? { ...q, status: 'SENT', channels: body.channels ?? q.channels } : q)),
       )
-    } catch {
-      toast.error('Error al reenviar cotización')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al enviar cotización')
     }
   }
 

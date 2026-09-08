@@ -1,8 +1,32 @@
 import { Router } from 'express'
 import * as XLSX from 'xlsx'
+import bcrypt from 'bcryptjs'
 import prisma from './_db.js'
+import { sendMail } from '../lib/mail.js'
 
 const router = Router()
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://promosolution.com.mx'
+
+function sendCredentialsMail({ name, email, password }) {
+  return sendMail({
+    to: email,
+    subject: 'Tu acceso a Promo Solution',
+    html: `
+      <p>Hola ${name},</p>
+      <p>Ya puedes ingresar a tu cuenta en <a href="${SITE_URL}">${SITE_URL}</a> con estos datos:</p>
+      <p>Correo: ${email}<br>Contraseña: ${password}</p>
+      <p>Por seguridad, te recomendamos cambiarla después de tu primer ingreso (opción "Olvidé mi contraseña").</p>
+    `,
+  })
+}
+
+// Nunca mandar el hash de password/resetToken al frontend del CRM —
+// solo si el cliente tiene o no acceso al sitio público (para mostrarlo en la tabla).
+function toSafeClient(client) {
+  const { password, resetToken, resetTokenExpiresAt, ...rest } = client
+  return { ...rest, hasPortalAccess: Boolean(password) }
+}
 
 // GET /api/clients
 router.get('/', async (req, res) => {
@@ -11,7 +35,7 @@ router.get('/', async (req, res) => {
       orderBy: { createdAt: 'desc' },
       include: { _count: { select: { quotes: true } } },
     })
-    return res.json(clients)
+    return res.json(clients.map(toSafeClient))
   } catch (e) {
     console.error('[clients GET]', e)
     return res.status(500).json({ error: 'Internal server error' })
@@ -20,8 +44,11 @@ router.get('/', async (req, res) => {
 
 // POST /api/clients
 router.post('/', async (req, res) => {
-  const { name, email, phone, company, markupPercent } = req.body
+  const { name, email, phone, company, markupPercent, password, sendCredentialsEmail } = req.body
   if (!name || !email) return res.status(400).json({ error: 'name and email are required' })
+  if (password && password.length < 8) {
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' })
+  }
   try {
     const client = await prisma.client.create({
       data: {
@@ -29,9 +56,13 @@ router.post('/', async (req, res) => {
         phone: phone || null,
         company: company || null,
         markupPercent: markupPercent ? parseFloat(markupPercent) : 33,
+        password: password ? await bcrypt.hash(password, 10) : null,
       },
     })
-    return res.status(201).json(client)
+    const emailSent = password && sendCredentialsEmail
+      ? await sendCredentialsMail({ name, email, password })
+      : undefined
+    return res.status(201).json({ ...toSafeClient(client), emailSent })
   } catch (e) {
     if (e.code === 'P2002') return res.status(409).json({ error: 'Email already exists' })
     console.error('[clients POST]', e)
@@ -81,7 +112,7 @@ router.get('/:id', async (req, res) => {
       },
     })
     if (!client) return res.status(404).json({ error: 'Client not found' })
-    return res.json(client)
+    return res.json(toSafeClient(client))
   } catch (e) {
     return res.status(500).json({ error: 'Internal server error' })
   }
@@ -89,7 +120,10 @@ router.get('/:id', async (req, res) => {
 
 // PUT /api/clients/:id
 router.put('/:id', async (req, res) => {
-  const { name, email, phone, company, markupPercent, status } = req.body
+  const { name, email, phone, company, markupPercent, status, password, sendCredentialsEmail } = req.body
+  if (password && password.length < 8) {
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' })
+  }
   try {
     const client = await prisma.client.update({
       where: { id: req.params.id },
@@ -100,9 +134,13 @@ router.put('/:id', async (req, res) => {
         ...(company !== undefined && { company: company || null }),
         ...(markupPercent !== undefined && { markupPercent: parseFloat(markupPercent) }),
         ...(status !== undefined && { status }),
+        ...(password && { password: await bcrypt.hash(password, 10) }),
       },
     })
-    return res.json(client)
+    const emailSent = password && sendCredentialsEmail
+      ? await sendCredentialsMail({ name: client.name, email: client.email, password })
+      : undefined
+    return res.json({ ...toSafeClient(client), emailSent })
   } catch (e) {
     if (e.code === 'P2025') return res.status(404).json({ error: 'Client not found' })
     if (e.code === 'P2002') return res.status(409).json({ error: 'Email already exists' })

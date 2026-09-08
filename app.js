@@ -32,6 +32,7 @@ import publicProvidersRouter    from './routes/public/providers.js'
 import publicServicesRouter     from './routes/public/services.js'
 import publicQuotesRouter       from './routes/public/quotes.js'
 import publicCustomerAuthRouter from './routes/public/customerAuth.js'
+import publicContactRouter      from './routes/public/contact.js'
 
 // ── Webhooks (Julio — agente de ventas IA) ───────────────────────────────────
 import telegramWebhookRouter    from './routes/webhooks/telegram.js'
@@ -63,6 +64,7 @@ app.use('/api/public/providers',  requireApiKey, publicProvidersRouter)
 app.use('/api/public/services',   requireApiKey, publicServicesRouter)
 app.use('/api/public/quotes',     requireApiKey, publicQuotesRouter)
 app.use('/api/public/auth',       requireApiKey, publicCustomerAuthRouter)
+app.use('/api/public/contact',    requireApiKey, publicContactRouter)
 
 // ── Webhooks — sin X-API-Key, se autentican con su propio secret de plataforma ─
 app.use('/api/webhooks/telegram', telegramWebhookRouter)

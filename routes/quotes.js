@@ -1,9 +1,10 @@
 import { Router } from 'express'
-import { renderToStream } from '@react-pdf/renderer'
+import { renderToStream, renderToBuffer } from '@react-pdf/renderer'
 import * as XLSX from 'xlsx'
 import React from 'react'
 import prisma from './_db.js'
 import { QuotePdfDocument } from '../lib/pdf/quotePdf.js'
+import { sendMail } from '../lib/mail.js'
 
 const router = Router()
 
@@ -29,6 +30,18 @@ function itemName(item) {
 
 function itemCode(item) {
   return item.product?.externalId ?? ''
+}
+
+async function loadPdfLogo() {
+  const configRows = await prisma.config.findMany({
+    where: { key: { in: ['logos.principal', 'logos.secundario', 'logos.uso.pdf'] } },
+  })
+  const cfg = Object.fromEntries(configRows.map((r) => [r.key, r.value]))
+  return (cfg['logos.uso.pdf'] === 'Secundario' ? cfg['logos.secundario'] : cfg['logos.principal']) || null
+}
+
+function folioOf(quote) {
+  return `COT-${quote.id.slice(-6).toUpperCase()}`
 }
 
 router.get('/', async (req, res) => {
@@ -114,21 +127,58 @@ router.get('/:id/pdf', async (req, res) => {
     const quote = await loadQuoteFull(req.params.id)
     if (!quote) return res.status(404).json({ error: 'Quote not found' })
 
-    const configRows = await prisma.config.findMany({
-      where: { key: { in: ['logos.principal', 'logos.secundario', 'logos.uso.pdf'] } },
-    })
-    const cfg = Object.fromEntries(configRows.map((r) => [r.key, r.value]))
-    const logoUrl = cfg['logos.uso.pdf'] === 'Secundario' ? cfg['logos.secundario'] : cfg['logos.principal']
+    const logoUrl = await loadPdfLogo()
 
     res.setHeader('Content-Type', 'application/pdf')
     res.setHeader('Content-Disposition', `attachment; filename="cotizacion-${quote.id.slice(-6)}.pdf"`)
     const stream = await renderToStream(
-      React.createElement(QuotePdfDocument, { quote, logoUrl: logoUrl || null }),
+      React.createElement(QuotePdfDocument, { quote, logoUrl }),
     )
     stream.pipe(res)
   } catch (e) {
     console.error('[quotes PDF]', e)
     return res.status(500).json({ error: 'Error al generar PDF' })
+  }
+})
+
+router.post('/:id/send', async (req, res) => {
+  try {
+    const quote = await loadQuoteFull(req.params.id)
+    if (!quote) return res.status(404).json({ error: 'Quote not found' })
+    if (!quote.client.email) return res.status(400).json({ error: 'El cliente no tiene correo registrado' })
+
+    const logoUrl = await loadPdfLogo()
+    const pdfBuffer = await renderToBuffer(
+      React.createElement(QuotePdfDocument, { quote, logoUrl }),
+    )
+    const folio = folioOf(quote)
+    const total = Number(quote.total).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })
+
+    const sent = await sendMail({
+      to: quote.client.email,
+      subject: `Cotización ${folio} — Promo Solution`,
+      html: `
+        <p>Hola ${quote.client.name},</p>
+        <p>Adjuntamos tu cotización <strong>${folio}</strong> por un total de ${total}.</p>
+        <p>Cualquier duda, responde este correo y con gusto te apoyamos.</p>
+      `,
+      account: 'ventas',
+      attachments: [{ filename: `${folio}.pdf`, content: pdfBuffer }],
+    })
+    if (!sent) return res.status(502).json({ error: 'No se pudo enviar el correo (revisa la configuración SMTP)' })
+
+    const updated = await prisma.quote.update({
+      where: { id: quote.id },
+      data: {
+        status: 'SENT',
+        channels: quote.channels.includes('EMAIL') ? quote.channels : [...quote.channels, 'EMAIL'],
+      },
+      include: { client: true },
+    })
+    return res.json(updated)
+  } catch (e) {
+    console.error('[quotes SEND]', e)
+    return res.status(500).json({ error: 'Error al enviar cotización' })
   }
 })
 

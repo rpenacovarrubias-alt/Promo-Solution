@@ -42,6 +42,7 @@ interface Client {
   company?: string
   markupPercent: string
   status: ClientStatus
+  hasPortalAccess: boolean
   _count?: { quotes: number }
 }
 
@@ -63,6 +64,9 @@ const clientSchema = z.object({
   phone: z.string().optional(),
   company: z.string().optional(),
   markupPercent: z.string().min(1, 'El % de utilidad es requerido'),
+  password: z.string().optional().refine((v) => !v || v.length >= 8, {
+    message: 'Mínimo 8 caracteres',
+  }),
 })
 
 type ClientForm = z.infer<typeof clientSchema>
@@ -77,13 +81,17 @@ export default function Clientes() {
   const [isSaving, setIsSaving] = useState(false)
   const [activeTab, setActiveTab] = useState<ClientStatus>('ACTIVO')
   const [editStatus, setEditStatus] = useState<ClientStatus>('ACTIVO')
+  const [sendEmail, setSendEmail] = useState(false)
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<ClientForm>({ resolver: zodResolver(clientSchema) })
+
+  const passwordValue = watch('password')
 
   const fetchClients = async () => {
     try {
@@ -112,19 +120,22 @@ export default function Clientes() {
   const openCreate = () => {
     setEditingClient(null)
     setEditStatus('ACTIVO')
-    reset({ name: '', email: '', phone: '', company: '', markupPercent: '33' })
+    setSendEmail(false)
+    reset({ name: '', email: '', phone: '', company: '', markupPercent: '33', password: '' })
     setDialogOpen(true)
   }
 
   const openEdit = (c: Client) => {
     setEditingClient(c)
     setEditStatus(c.status)
+    setSendEmail(false)
     reset({
       name: c.name,
       email: c.email,
       phone: c.phone ?? '',
       company: c.company ?? '',
       markupPercent: c.markupPercent,
+      password: '',
     })
     setDialogOpen(true)
   }
@@ -134,14 +145,27 @@ export default function Clientes() {
     try {
       const url = editingClient ? `/api/clients/${editingClient.id}` : '/api/clients'
       const method = editingClient ? 'PUT' : 'POST'
-      const payload = editingClient ? { ...data, status: editStatus } : data
+      const payload: Record<string, unknown> = editingClient ? { ...data, status: editStatus } : { ...data }
+      if (!payload.password) {
+        delete payload.password
+      } else {
+        payload.sendCredentialsEmail = sendEmail
+      }
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
+      const result = await res.json().catch(() => null)
       if (!res.ok) throw new Error()
-      toast.success(editingClient ? 'Cliente actualizado' : 'Cliente creado')
+
+      if (result?.emailSent === true) {
+        toast.success(`${editingClient ? 'Cliente actualizado' : 'Cliente creado'} y credenciales enviadas por correo`)
+      } else if (result?.emailSent === false) {
+        toast.warning('Cliente guardado, pero no se pudo enviar el correo — compártele la contraseña tú mismo')
+      } else {
+        toast.success(editingClient ? 'Cliente actualizado' : 'Cliente creado')
+      }
       setDialogOpen(false)
       fetchClients()
     } catch {
@@ -222,13 +246,14 @@ export default function Clientes() {
                   <TableHead>% de Desc.</TableHead>
                   <TableHead># Cotizaciones</TableHead>
                   <TableHead>Estado</TableHead>
+                  <TableHead>Acceso al sitio</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {visibleClients.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center text-muted-foreground py-10">
+                    <TableCell colSpan={10} className="text-center text-muted-foreground py-10">
                       No hay clientes en esta categoría
                     </TableCell>
                   </TableRow>
@@ -244,6 +269,11 @@ export default function Clientes() {
                       <TableCell>{c._count?.quotes ?? 0}</TableCell>
                       <TableCell>
                         <Badge variant={STATUS_BADGE[c.status].variant}>{STATUS_BADGE[c.status].label}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={c.hasPortalAccess ? 'success' : 'secondary'}>
+                          {c.hasPortalAccess ? 'Con acceso' : 'Sin acceso'}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -307,6 +337,29 @@ export default function Clientes() {
                   <p className="text-xs text-destructive">{errors.markupPercent.message}</p>
                 )}
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>
+                {editingClient
+                  ? `Nueva contraseña de acceso (dejar vacío para ${editingClient.hasPortalAccess ? 'no cambiar' : 'no dar acceso'})`
+                  : 'Contraseña de acceso al sitio público (opcional)'}
+              </Label>
+              <Input type="password" placeholder="••••••••" {...register('password')} />
+              <p className="text-xs text-muted-foreground">
+                Déjalo vacío si el cliente no debe entrar a promosolution.com.mx con cuenta propia.
+              </p>
+              {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+              {passwordValue && (
+                <label className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
+                  <input
+                    type="checkbox"
+                    checked={sendEmail}
+                    onChange={(e) => setSendEmail(e.target.checked)}
+                    className="h-4 w-4 rounded border-input"
+                  />
+                  Enviarle esta contraseña por correo a {watch('email') || 'este cliente'}
+                </label>
+              )}
             </div>
             {editingClient && (
               <div className="space-y-2">
