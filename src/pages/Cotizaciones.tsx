@@ -30,7 +30,7 @@ interface QuoteItem {
   unitPrice: string
   markup: string
   subtotal: string
-  product?: { name: string }
+  product?: { name: string; externalId?: string; provider?: { name: string } }
   service?: { name: string }
 }
 
@@ -273,6 +273,8 @@ export default function Cotizaciones() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Producto/Servicio</TableHead>
+                    <TableHead>Proveedor</TableHead>
+                    <TableHead>SKU</TableHead>
                     <TableHead>Cant.</TableHead>
                     <TableHead>Precio</TableHead>
                     <TableHead>% Util.</TableHead>
@@ -283,6 +285,10 @@ export default function Cotizaciones() {
                   {selectedQuote.items.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>{item.product?.name ?? item.service?.name ?? '—'}</TableCell>
+                      <TableCell className="text-muted-foreground">{item.product?.provider?.name ?? '—'}</TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">
+                        {item.product?.externalId ?? '—'}
+                      </TableCell>
                       <TableCell>{item.quantity}</TableCell>
                       <TableCell>{formatCurrency(parseFloat(item.unitPrice))}</TableCell>
                       <TableCell>{item.markup}%</TableCell>

@@ -16,7 +16,12 @@ async function loadQuoteFull(id) {
       seller: { select: { name: true } },
       items: {
         include: {
-          product: { include: { images: { orderBy: { isPrimary: 'desc' }, take: 1 } } },
+          product: {
+            include: {
+              images: { orderBy: { isPrimary: 'desc' }, take: 1 },
+              provider: { select: { name: true } },
+            },
+          },
           service: true,
         },
       },
@@ -28,8 +33,14 @@ function itemName(item) {
   return item.product?.name ?? item.service?.name ?? 'Item'
 }
 
+// SKU real del proveedor y quién lo surte — solo para uso interno (Excel de
+// abasto), nunca para el PDF que ve/recibe el cliente (ver lib/pdf/quotePdf.js).
 function itemCode(item) {
   return item.product?.externalId ?? ''
+}
+
+function itemProvider(item) {
+  return item.product?.provider?.name ?? ''
 }
 
 async function loadPdfLogo() {
@@ -57,7 +68,9 @@ router.get('/', async (req, res) => {
         seller: { select: { id: true, name: true } },
         items: {
           include: {
-            product: { select: { id: true, name: true } },
+            product: {
+              select: { id: true, name: true, externalId: true, provider: { select: { name: true } } },
+            },
             service: { select: { id: true, name: true } },
           },
         },
@@ -113,7 +126,10 @@ router.get('/:id', async (req, res) => {
   try {
     const quote = await prisma.quote.findUnique({
       where: { id: req.params.id },
-      include: { client: true, items: { include: { product: true, service: true } } },
+      include: {
+        client: true,
+        items: { include: { product: { include: { provider: { select: { name: true } } } }, service: true } },
+      },
     })
     if (!quote) return res.status(404).json({ error: 'Quote not found' })
     return res.json(quote)
@@ -201,6 +217,7 @@ router.get('/:id/excel', async (req, res) => {
     ]
 
     const rows = quote.items.map((item) => ({
+      Proveedor: itemProvider(item),
       Código: itemCode(item),
       Concepto: itemName(item),
       'Técnica': item.printTechnique || '',
