@@ -15,9 +15,21 @@ interface Props {
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { q, categoryId } = searchParams
+  const { q, categoryId, featured, page } = searchParams
   const title = categoryId ? `Categoría — Catálogo` : q ? `"${q}" — Búsqueda` : 'Catálogo completo'
-  return { title }
+
+  // Búsquedas y filtros "destacados" son duplicados: no se indexan y apuntan a /catalogo.
+  const duplicado = !!(q || featured)
+  const params = new URLSearchParams()
+  if (categoryId && !duplicado) params.set('categoryId', categoryId)
+  const n = parseInt(page ?? '1')
+  if (n > 1 && !duplicado) params.set('page', String(n))
+
+  return {
+    title,
+    alternates: { canonical: params.toString() ? `/catalogo?${params}` : '/catalogo' },
+    ...(duplicado ? { robots: { index: false, follow: true } } : {}),
+  }
 }
 
 export default async function CatalogoPage({ searchParams }: Props) {

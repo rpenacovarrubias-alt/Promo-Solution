@@ -6,6 +6,9 @@ import Image from 'next/image'
 import { cookies } from 'next/headers'
 import { SESSION_COOKIE } from '@/lib/session'
 import { CupSoda, Laptop, Shirt, Leaf, NotebookText, KeyRound, Dumbbell, PenTool } from 'lucide-react'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = { alternates: { canonical: '/' } }
 
 const CATEGORIAS_HERO = [
   { nombre: 'Bebidas',    Icon: CupSoda },
