@@ -37,10 +37,14 @@ async function upsertProducts(providerId, normalizedProducts) {
   for (const p of normalizedProducts) {
     const existing = await prisma.product.findUnique({
       where: { providerId_externalId: { providerId, externalId: p.externalId } },
+      include: { _count: { select: { images: true } } },
     })
 
     const categoryId = await resolveCategoryId(p.rawCategory)
-    const data = { name: p.name, description: p.description, categoryId, basePrice: p.basePrice, stock: p.stock, isActive: p.isActive ?? true }
+    // Regla de calidad: sin precio o sin imagen => inactivo (admin y sitio público).
+    const hasImage = existing ? existing._count.images > 0 || !!p.images?.length : !!p.images?.length
+    const isActive = (p.isActive ?? true) && Number(p.basePrice) > 0 && hasImage
+    const data = { name: p.name, description: p.description, categoryId, basePrice: p.basePrice, stock: p.stock, isActive }
 
     if (existing) {
       await prisma.product.update({ where: { id: existing.id }, data })

@@ -57,6 +57,33 @@ router.get('/:id', async (req, res) => {
   }
 })
 
+// Regla de calidad del catálogo: un producto sin precio (basePrice <= 0) o sin
+// imagen NO puede estar activo (ni en admin ni en el sitio público, que solo
+// muestra isActive && isVisible). Los inactivos siguen listados en el admin
+// para poder identificarlos. Idempotente. `?dry=1` solo cuenta, no escribe.
+// Misma regla que aplica routes/sync.js al sincronizar con proveedores.
+router.post('/apply-quality-rule', async (req, res) => {
+  const where = { isActive: true, OR: [{ basePrice: { lte: 0 } }, { images: { none: {} } }] }
+  try {
+    const rows = await prisma.product.findMany({
+      where,
+      select: { id: true, name: true, basePrice: true, _count: { select: { images: true } } },
+    })
+    if (req.query.dry !== '1' && rows.length) {
+      await prisma.product.updateMany({ where: { id: { in: rows.map(r => r.id) } }, data: { isActive: false } })
+    }
+    return res.json({
+      dryRun: req.query.dry === '1',
+      deactivated: req.query.dry === '1' ? 0 : rows.length,
+      matched: rows.length,
+      sample: rows.slice(0, 5).map(r => ({ id: r.id, name: r.name, basePrice: r.basePrice, images: r._count.images })),
+    })
+  } catch (e) {
+    console.error('[products apply-quality-rule]', e)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
 router.put('/:id', async (req, res) => {
   const { isVisible, isFeatured } = req.body
   try {
