@@ -51,7 +51,7 @@ const navGroups: NavGroup[] = [
       { to: '/proveedores',  icon: Truck,       label: 'Proveedores' },
       { to: '/catalogos',    icon: BookOpen,    label: 'Catálogos' },
       { to: '/categorias',   icon: Tag,         label: 'Categorías' },
-      { to: '/colecciones',  icon: FolderOpen,  label: 'Colecciones' },
+      { to: '/colecciones',  icon: FolderOpen,  label: 'Recomendaciones' },
       { to: '/productos',    icon: Package,     label: 'Productos' },
       { to: '/servicios',    icon: Scissors,    label: 'Servicios' },
     ],

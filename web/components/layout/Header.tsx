@@ -8,13 +8,32 @@ import { useRouter } from 'next/navigation'
 import { UserRound, LogOut } from 'lucide-react'
 import { LoginModal } from './LoginModal'
 import { useAuth } from '@/components/auth/AuthContext'
+import { iconFor } from '@/lib/recommendationIcons'
+import type { ApiCategory, ApiCollection } from '@/lib/api'
 
-const CATEGORIAS_MENU = [
-  'Bebidas', 'Tecnología', 'Oficina y Escritorio', 'Textiles', 'Uniformes',
-  'Libretas', 'Llaveros', 'Deportes y tiempo libre', 'Ecológicos', 'Ropa',
-]
+// Panel ancho bajo la cabecera (como Promo Opción). Se abre con hover y con foco de teclado.
+const PANEL =
+  'absolute inset-x-0 top-full z-50 invisible opacity-0 border-b border-gray-100 bg-white shadow-lg ' +
+  'transition-opacity duration-150 ease-out motion-reduce:transition-none ' +
+  'group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100'
+const MENU_BTN =
+  'flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-navy-700 rounded-lg hover:bg-navy-50'
+const SUMMARY =
+  'flex min-h-[44px] cursor-pointer list-none items-center justify-between py-2 text-sm text-gray-700 [&::-webkit-details-marker]:hidden'
 
-export function Header() {
+const Chevron = () => (
+  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+  </svg>
+)
+
+interface HeaderProps {
+  categories?:  ApiCategory[]
+  collections?: ApiCollection[]
+}
+
+export function Header({ categories = [], collections = [] }: HeaderProps) {
+  const topCategories = categories.filter(c => !c.parentId && c.productCount > 0)
   const [menuOpen, setMenuOpen]   = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
   const [searchVal, setSearchVal] = useState('')
@@ -72,33 +91,58 @@ export function Header() {
 
           {/* Nav links */}
           <nav className="hidden md:flex items-center gap-1">
-            <div className="relative group">
-              <button className="flex items-center gap-1 px-3 py-2 text-sm font-medium
-                                 text-gray-700 hover:text-navy-700 rounded-lg hover:bg-navy-50">
-                Categorías
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
-                </svg>
+            <div className="group">
+              <button type="button" className={MENU_BTN} aria-haspopup="true">
+                Categorías <Chevron />
               </button>
-              {/* Dropdown */}
-              <div className="absolute top-full left-0 w-56 bg-white border border-gray-100
-                              rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100
-                              group-hover:visible transition-all duration-150 z-50 py-1">
-                {CATEGORIAS_MENU.map(cat => (
-                  <Link key={cat}
-                    href={`/catalogo?categoria=${encodeURIComponent(cat)}`}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-navy-50 hover:text-navy-700">
-                    {cat}
-                  </Link>
-                ))}
-                <div className="border-t border-gray-100 mt-1 pt-1">
-                  <Link href="/catalogo"
-                    className="block px-4 py-2 text-sm font-medium text-navy-700 hover:bg-navy-50">
-                    Ver todas las categorías →
-                  </Link>
-                </div>
+              <div className={PANEL}>
+                <ul className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-0.5 px-8 py-5">
+                  {topCategories.map(cat => (
+                    <li key={cat.id}>
+                      <Link href={`/catalogo?categoryId=${cat.id}`}
+                        className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-navy-50 hover:text-navy-700">
+                        {cat.name}
+                        <span className="text-xs text-gray-400">{cat.productCount.toLocaleString()}</span>
+                      </Link>
+                    </li>
+                  ))}
+                  <li className="col-span-full mt-2 border-t border-gray-100 pt-2">
+                    <Link href="/catalogo" className="block rounded-lg px-3 py-2 text-sm font-medium text-navy-700 hover:bg-navy-50">
+                      Ver todo el catálogo →
+                    </Link>
+                  </li>
+                </ul>
               </div>
             </div>
+
+            {collections.length > 0 && (
+              <div className="group">
+                <button type="button" className={MENU_BTN} aria-haspopup="true">
+                  Recomendaciones <Chevron />
+                </button>
+                <div className={PANEL}>
+                  <ul className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-0.5 px-8 py-5">
+                    {collections.map(col => {
+                      const Icon = iconFor(col.icon)
+                      return (
+                        <li key={col.id}>
+                          <Link href={`/recomendaciones/${col.code.toLowerCase()}`}
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-800 hover:bg-navy-50 hover:text-navy-700">
+                            <Icon className="w-5 h-5 shrink-0 text-navy-700" strokeWidth={1.75} aria-hidden="true" />
+                            {col.name}
+                          </Link>
+                        </li>
+                      )
+                    })}
+                    <li className="col-span-full mt-2 border-t border-gray-100 pt-2">
+                      <Link href="/recomendaciones" className="block rounded-lg px-3 py-2 text-sm font-medium text-navy-700 hover:bg-navy-50">
+                        Ver todas las recomendaciones →
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            )}
 
             <Link href="/catalogo"
               className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-navy-700 rounded-lg hover:bg-navy-50">
@@ -166,13 +210,31 @@ export function Header() {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-1">
-          <Link href="/catalogo" className="block py-2 text-sm text-gray-700">Catálogo</Link>
-          {CATEGORIAS_MENU.map(cat => (
-            <Link key={cat} href={`/catalogo?categoria=${encodeURIComponent(cat)}`}
-              className="block py-2 text-sm text-gray-500 pl-3">
-              {cat}
-            </Link>
-          ))}
+          <Link href="/catalogo" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-gray-700">Catálogo</Link>
+          <details>
+            <summary className={SUMMARY}>Categorías <Chevron /></summary>
+            <div className="max-h-64 overflow-y-auto pl-3">
+              {topCategories.map(cat => (
+                <Link key={cat.id} href={`/catalogo?categoryId=${cat.id}`} onClick={() => setMenuOpen(false)}
+                  className="block py-2 text-sm text-gray-500">
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
+          </details>
+          {collections.length > 0 && (
+            <details>
+              <summary className={SUMMARY}>Recomendaciones <Chevron /></summary>
+              <div className="max-h-64 overflow-y-auto pl-3">
+                {collections.map(col => (
+                  <Link key={col.id} href={`/recomendaciones/${col.code.toLowerCase()}`} onClick={() => setMenuOpen(false)}
+                    className="block py-2 text-sm text-gray-500">
+                    {col.name}
+                  </Link>
+                ))}
+              </div>
+            </details>
+          )}
           <Link href="/contacto" className="block py-2 text-sm text-gray-700">Contacto</Link>
           {client ? (
             <button

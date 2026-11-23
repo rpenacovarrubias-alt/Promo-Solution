@@ -99,23 +99,46 @@ model Category {
   seoKeywords     String?
   utilityPercent  Decimal   @default(0) @db.Decimal(5, 2)
   discountPercent Decimal   @default(0) @db.Decimal(5, 2)
+  // Subcategorías (árbol de 2 niveles, como Promo Opción). null = categoría principal.
+  parentId        String?
+  parent          Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children        Category[] @relation("CategoryTree")
   products        Product[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  @@index([parentId])
   @@schema("promo_panel")
 }
 
+// "Recomendaciones" en el sitio (Navidad, Fitness, Ecológicos...). Un producto de
+// CUALQUIER proveedor puede estar en varias; se llenan a mano o con matchKeywords.
 model Collection {
-  id             String   @id @default(cuid())
-  code           String   @unique
+  id             String              @id @default(cuid())
+  code           String              @unique
   name           String
   seoDescription String?
   seoKeywords    String?
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  icon           String?             // nombre de icono lucide (lista blanca en el sitio)
+  matchKeywords  String?             // palabras (separadas por coma) para "autollenar" por nombre de producto
+  sortOrder      Int                 @default(0)
+  isActive       Boolean             @default(true)
+  products       ProductCollection[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
+  @@schema("promo_panel")
+}
+
+model ProductCollection {
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  addedAt      DateTime   @default(now())
+
+  @@id([collectionId, productId])
+  @@index([productId])
   @@schema("promo_panel")
 }
 
@@ -137,6 +160,7 @@ model Product {
   colors      ProductColor[]
   variants    ProductVariant[]
   quoteItems  QuoteItem[]
+  collections ProductCollection[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 

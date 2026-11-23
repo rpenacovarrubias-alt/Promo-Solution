@@ -7,6 +7,7 @@ import { WhatsAppButton } from '@/components/layout/WhatsAppButton'
 import { JulioChat } from '@/components/chat/JulioChat'
 import { CarritoProvider } from '@/components/quote/CarritoContext'
 import { AuthProvider } from '@/components/auth/AuthContext'
+import { getCategories, getCollections } from '@/lib/api'
 
 const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] })
 
@@ -24,13 +25,19 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Menús de la cabecera. Si la API no responde el sitio sigue funcionando, solo sin esos menús.
+  const [categories, collections] = await Promise.all([
+    getCategories().catch(() => []),
+    getCollections().catch(() => []),
+  ])
+
   return (
     <html lang="es">
       <body className={plusJakartaSans.className}>
         <AuthProvider>
           <CarritoProvider>
-            <Header />
+            <Header categories={categories} collections={collections} />
             <main className="min-h-[calc(100vh-140px)]">{children}</main>
             <Footer />
             <WhatsAppButton />

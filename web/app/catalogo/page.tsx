@@ -1,5 +1,6 @@
 import { getProducts, getCategories } from '@/lib/api'
 import { ProductoCard } from '@/components/product/ProductoCard'
+import { Pagination } from '@/components/product/Pagination'
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { SESSION_COOKIE } from '@/lib/session'
@@ -51,30 +52,41 @@ export default async function CatalogoPage({ searchParams }: Props) {
   // Nombre de la categoría activa
   const activeCategory = categories.find(c => c.id === searchParams.categoryId)
 
+  // Árbol de 2 niveles: las subcategorías de una principal se despliegan cuando
+  // esa rama está activa (la principal o una de sus hijas seleccionada).
+  const activeTopId = activeCategory?.parentId ?? activeCategory?.id
+  const topCategories = categories.filter(c => !c.parentId && c.productCount > 0)
+  const withQuery = (id: string) => `/catalogo?categoryId=${id}` + (searchParams.q ? `&q=${searchParams.q}` : '')
+  const linkClass = (active: boolean, extra = '') =>
+    `block px-3 py-2.5 rounded-lg text-sm transition-colors ${extra} ${
+      active ? 'bg-navy-700 text-white font-medium' : 'text-gray-700 hover:bg-navy-50 hover:text-navy-700'
+    }`
+
   const categoryList = (
     <ul className="space-y-0.5">
       <li>
-        <Link href="/catalogo"
-          className={`block px-3 py-2.5 rounded-lg text-sm transition-colors ${
-            !searchParams.categoryId
-              ? 'bg-navy-700 text-white font-medium'
-              : 'text-gray-700 hover:bg-navy-50 hover:text-navy-700'
-          }`}>
+        <Link href="/catalogo" className={linkClass(!searchParams.categoryId)}>
           Todos ({total.toLocaleString()})
         </Link>
       </li>
-      {categories.map(cat => (
+      {topCategories.map(cat => (
         <li key={cat.id}>
-          <Link
-            href={`/catalogo?categoryId=${cat.id}` + (searchParams.q ? `&q=${searchParams.q}` : '')}
-            className={`block px-3 py-2.5 rounded-lg text-sm transition-colors ${
-              searchParams.categoryId === cat.id
-                ? 'bg-navy-700 text-white font-medium'
-                : 'text-gray-700 hover:bg-navy-50 hover:text-navy-700'
-            }`}>
+          <Link href={withQuery(cat.id)} className={linkClass(searchParams.categoryId === cat.id)}>
             {cat.name}
             <span className="ml-1 text-xs opacity-60">({cat.productCount})</span>
           </Link>
+          {activeTopId === cat.id && (
+            <ul className="mt-0.5 mb-1 ml-3 space-y-0.5 border-l border-gray-200 pl-2">
+              {categories.filter(s => s.parentId === cat.id).map(sub => (
+                <li key={sub.id}>
+                  <Link href={withQuery(sub.id)} className={linkClass(searchParams.categoryId === sub.id, '!py-2')}>
+                    {sub.name}
+                    <span className="ml-1 text-xs opacity-60">({sub.productCount})</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </li>
       ))}
     </ul>
@@ -135,33 +147,7 @@ export default async function CatalogoPage({ searchParams }: Props) {
             </div>
           )}
 
-          {/* Paginación */}
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-10">
-              {page > 1 && (
-                <Link href={buildUrl(page - 1)} className="btn-outline px-3 py-2">← Anterior</Link>
-              )}
-              {(() => {
-                const windowSize = Math.min(5, totalPages)
-                const start = Math.max(1, Math.min(page - 2, totalPages - windowSize + 1))
-                return Array.from({ length: windowSize }, (_, i) => start + i)
-              })().map(p => {
-                return (
-                  <Link key={p} href={buildUrl(p)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      p === page
-                        ? 'bg-navy-700 text-white'
-                        : 'border border-gray-200 text-gray-700 hover:border-navy-700'
-                    }`}>
-                    {p}
-                  </Link>
-                )
-              })}
-              {page < totalPages && (
-                <Link href={buildUrl(page + 1)} className="btn-outline px-3 py-2">Siguiente →</Link>
-              )}
-            </div>
-          )}
+          <Pagination page={page} totalPages={totalPages} href={buildUrl} />
         </div>
       </div>
     </div>

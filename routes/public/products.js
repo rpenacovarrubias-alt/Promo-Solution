@@ -38,14 +38,20 @@ export function formatProduct(p, clientMarkup) {
 
 // GET /api/public/products
 router.get('/', async (req, res) => {
-  const { search, categoryId, providerId, page = '1', limit = '20' } = req.query
+  const { search, categoryId, providerId, collectionId, page = '1', limit = '20' } = req.query
   const pageNum  = Math.max(1, parseInt(page))
   const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
+
+  // Una categoría principal incluye los productos de sus subcategorías.
+  const categoryIds = categoryId
+    ? [categoryId, ...(await prisma.category.findMany({ where: { parentId: categoryId }, select: { id: true } })).map(c => c.id)]
+    : null
 
   const where = {
     isActive: true,
     isVisible: true,
-    ...(categoryId && { categoryId }),
+    ...(categoryIds && { categoryId: { in: categoryIds } }),
+    ...(collectionId && { collections: { some: { collectionId } } }),
     ...(providerId && { providerId }),
     ...(search && {
       OR: [

@@ -29,6 +29,17 @@ export interface ApiProduct {
 export interface ApiCategory {
   id:           string
   name:         string
+  parentId:     string | null   // null = categoría principal; si no, subcategoría
+  productCount: number          // las principales incluyen los de sus subcategorías
+}
+
+/** "Recomendación" (Navidad, Fitness...): grupo temático con productos de todos los proveedores. */
+export interface ApiCollection {
+  id:           string
+  code:         string
+  name:         string
+  icon:         string | null
+  description:  string | null
   productCount: number
 }
 
@@ -158,6 +169,7 @@ export interface GetProductsParams {
   search?:    string
   categoryId?: string
   providerId?: string
+  collectionId?: string
   featured?:  boolean
   page?:      number
   limit?:     number
@@ -168,6 +180,7 @@ export async function getProducts(params: GetProductsParams = {}, token?: string
   if (params.search)     qs.set('search',     params.search)
   if (params.categoryId) qs.set('categoryId', params.categoryId)
   if (params.providerId) qs.set('providerId', params.providerId)
+  if (params.collectionId) qs.set('collectionId', params.collectionId)
   if (params.featured)   qs.set('featured',   'true')
   if (params.page)       qs.set('page',       String(params.page))
   if (params.limit)      qs.set('limit',      String(params.limit))
@@ -187,6 +200,20 @@ export async function getProductById(id: string, token?: string): Promise<ApiPro
 
 export async function getCategories(): Promise<ApiCategory[]> {
   return apiFetch<ApiCategory[]>('/api/public/categories')
+}
+
+// ── Recomendaciones ───────────────────────────────────────────────────────────
+
+export async function getCollections(): Promise<ApiCollection[]> {
+  return apiFetch<ApiCollection[]>('/api/public/collections')
+}
+
+export async function getCollection(code: string): Promise<ApiCollection | null> {
+  try {
+    return await apiFetch<ApiCollection>(`/api/public/collections/${encodeURIComponent(code)}`)
+  } catch {
+    return null
+  }
 }
 
 // ── Proveedores ───────────────────────────────────────────────────────────────

@@ -17,14 +17,31 @@ router.get('/', async (req, res) => {
   }
 })
 
+// Una subcategoría cuelga de una categoría principal (árbol de 2 niveles).
+// Devuelve un mensaje de error, o null si el parentId es válido.
+async function checkParent(parentId, selfId) {
+  if (!parentId) return null
+  if (parentId === selfId) return 'Una categoría no puede ser su propio padre'
+  const parent = await prisma.category.findUnique({ where: { id: parentId }, select: { parentId: true } })
+  if (!parent) return 'La categoría padre no existe'
+  if (parent.parentId) return 'Solo se permiten 2 niveles: el padre debe ser una categoría principal'
+  if (selfId && (await prisma.category.count({ where: { parentId: selfId } }))) {
+    return 'Esta categoría tiene subcategorías; no puede volverse subcategoría'
+  }
+  return null
+}
+
 // POST /api/categories
 router.post('/', async (req, res) => {
-  const { name, seoDescription, seoKeywords, utilityPercent, discountPercent } = req.body
+  const { name, seoDescription, seoKeywords, utilityPercent, discountPercent, parentId } = req.body
   if (!name) return res.status(400).json({ error: 'name is required' })
   try {
+    const parentError = await checkParent(parentId || null, null)
+    if (parentError) return res.status(400).json({ error: parentError })
     const category = await prisma.category.create({
       data: {
         name: name.trim(),
+        parentId: parentId || null,
         seoDescription: seoDescription || null,
         seoKeywords: seoKeywords || null,
         utilityPercent: parseFloat(utilityPercent ?? 0),
@@ -52,12 +69,17 @@ router.get('/:id', async (req, res) => {
 
 // PUT /api/categories/:id
 router.put('/:id', async (req, res) => {
-  const { name, seoDescription, seoKeywords, utilityPercent, discountPercent } = req.body
+  const { name, seoDescription, seoKeywords, utilityPercent, discountPercent, parentId } = req.body
   try {
+    if (parentId !== undefined) {
+      const parentError = await checkParent(parentId || null, req.params.id)
+      if (parentError) return res.status(400).json({ error: parentError })
+    }
     const category = await prisma.category.update({
       where: { id: req.params.id },
       data: {
         ...(name !== undefined && { name: name.trim() }),
+        ...(parentId !== undefined && { parentId: parentId || null }),
         ...(seoDescription !== undefined && { seoDescription: seoDescription || null }),
         ...(seoKeywords !== undefined && { seoKeywords: seoKeywords || null }),
         ...(utilityPercent !== undefined && { utilityPercent: parseFloat(utilityPercent) }),

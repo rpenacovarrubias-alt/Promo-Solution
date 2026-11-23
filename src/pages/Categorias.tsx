@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
-import { Pencil, Search, Info, Check } from 'lucide-react'
+import { Pencil, Plus, Search, Info, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -27,8 +27,21 @@ interface Category {
   seoKeywords?: string
   utilityPercent: string
   discountPercent: string
+  parentId?: string | null
   _count?: { products: number }
 }
+
+// Principales por nombre, cada una seguida de sus subcategorías. Con búsqueda activa se
+// muestra una lista plana de coincidencias para no esconder subcategorías bajo un padre colapsado.
+function arrange(categories: Category[], search: string): Category[] {
+  const q = search.trim().toLowerCase()
+  const byName = (a: Category, b: Category) => a.name.localeCompare(b.name, 'es')
+  if (q) return categories.filter((c) => c.name.toLowerCase().includes(q)).sort(byName)
+  const tops = categories.filter((c) => !c.parentId).sort(byName)
+  return tops.flatMap((t) => [t, ...categories.filter((c) => c.parentId === t.id).sort(byName)])
+}
+
+const NO_PARENT = 'none' // Radix Select no admite value ''
 
 const PALETTE = ['#17264A', '#C9A15A', '#5C6577', '#B02A2A', '#1E8E5A', '#2C4A8C']
 function colorFor(name: string) {
@@ -45,6 +58,8 @@ export default function Categorias() {
   const [savedId, setSavedId] = useState<string | null>(null)
   const [seoDialogOpen, setSeoDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Category | null>(null)
+  const [newName, setNewName] = useState('')
+  const [parentId, setParentId] = useState(NO_PARENT)
   const [seoDesc, setSeoDesc] = useState('')
   const [seoKeywords, setSeoKeywords] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -65,10 +80,12 @@ export default function Categorias() {
     fetchCategories()
   }, [])
 
-  const filtered = useMemo(
-    () => categories.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())),
-    [categories, search],
+  const filtered = useMemo(() => arrange(categories, search), [categories, search])
+  const parentOptions = useMemo(
+    () => categories.filter((c) => !c.parentId && c.id !== editing?.id).sort((a, b) => a.name.localeCompare(b.name, 'es')),
+    [categories, editing],
   )
+  const editingHasChildren = !!editing && categories.some((c) => c.parentId === editing.id)
 
   const limit = parseInt(pageSize)
   const totalPages = Math.max(1, Math.ceil(filtered.length / limit))
@@ -94,26 +111,46 @@ export default function Categorias() {
 
   const openSeoModal = (c: Category) => {
     setEditing(c)
+    setNewName(c.name)
+    setParentId(c.parentId ?? NO_PARENT)
     setSeoDesc(c.seoDescription ?? '')
     setSeoKeywords(c.seoKeywords ?? '')
     setSeoDialogOpen(true)
   }
 
+  const openCreate = () => {
+    setEditing(null)
+    setNewName('')
+    setParentId(NO_PARENT)
+    setSeoDesc('')
+    setSeoKeywords('')
+    setSeoDialogOpen(true)
+  }
+
+  // Crea (editing == null) o actualiza nombre, categoría padre y SEO.
   const saveSeo = async () => {
-    if (!editing) return
+    if (!newName.trim()) return
     setIsSaving(true)
     try {
-      const res = await fetch(`/api/categories/${editing.id}`, {
-        method: 'PUT',
+      const res = await fetch(editing ? `/api/categories/${editing.id}` : '/api/categories', {
+        method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seoDescription: seoDesc, seoKeywords }),
+        body: JSON.stringify({
+          name: newName.trim(),
+          parentId: parentId === NO_PARENT ? null : parentId,
+          seoDescription: seoDesc,
+          seoKeywords,
+        }),
       })
-      if (!res.ok) throw new Error()
-      toast.success('SEO actualizado')
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error)
+      }
+      toast.success(editing ? 'Categoría actualizada' : 'Categoría creada')
       setSeoDialogOpen(false)
       fetchCategories()
-    } catch {
-      toast.error('Error al guardar SEO')
+    } catch (e) {
+      toast.error(e instanceof Error && e.message ? e.message : 'Error al guardar')
     } finally {
       setIsSaving(false)
     }
@@ -133,16 +170,22 @@ export default function Categorias() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Categorías</h1>
-        <p className="text-muted-foreground">Configura utilidad y descuento por categoría de producto</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Categorías</h1>
+          <p className="text-muted-foreground">Configura utilidad y descuento por categoría de producto</p>
+        </div>
+        <Button onClick={openCreate} className="shrink-0 self-start">
+          <Plus className="mr-2 h-4 w-4" />
+          Nueva categoría
+        </Button>
       </div>
 
       <div className="flex gap-3 rounded-lg p-4" style={{ background: '#FDF6E8' }}>
         <Info className="mt-0.5 h-[18px] w-[18px] shrink-0" style={{ color: '#A8823F' }} />
         <p className="text-sm" style={{ color: '#A8823F' }}>
-          Las categorías aparecen automáticamente al sincronizar tus proveedores. Aquí solo configuras SEO, utilidad y
-          descuento para cada una.
+          Las categorías de tus proveedores aparecen al sincronizar. Puedes crear categorías y subcategorías propias
+          (como en Promo Opción); una subcategoría sin productos no se muestra en el sitio.
         </p>
       </div>
 
@@ -201,14 +244,19 @@ export default function Categorias() {
                 {pageItems.map((c) => (
                   <tr key={c.id} className="border-t">
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2.5">
+                      <div className={`flex items-center gap-2.5 ${c.parentId && !search.trim() ? 'pl-8' : ''}`}>
                         <div
                           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold text-white"
                           style={{ background: colorFor(c.name) }}
                         >
                           {c.name.charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-medium">{c.name}</span>
+                        <span className={c.parentId ? 'text-muted-foreground' : 'font-medium'}>{c.name}</span>
+                        {c.parentId && search.trim() && (
+                          <span className="text-xs text-muted-foreground">
+                            en {categories.find((p) => p.id === c.parentId)?.name}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="max-w-[220px] truncate px-5 py-3.5 text-muted-foreground">
@@ -291,15 +339,38 @@ export default function Categorias() {
       <Dialog open={seoDialogOpen} onOpenChange={setSeoDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>SEO — {editing?.name}</DialogTitle>
+            <DialogTitle>{editing ? `Editar — ${editing.name}` : 'Nueva categoría'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Descripción</Label>
+              <Label>Nombre</Label>
+              <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ej. Termos Metálicos" />
+            </div>
+            <div className="space-y-2">
+              <Label>Categoría principal</Label>
+              <Select value={parentId} onValueChange={setParentId} disabled={editingHasChildren}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-64">
+                  <SelectItem value={NO_PARENT}>Ninguna (es una categoría principal)</SelectItem>
+                  {parentOptions.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {editingHasChildren && (
+                <p className="text-xs text-muted-foreground">Tiene subcategorías, por eso no puede colgar de otra.</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>SEO — Descripción</Label>
               <Textarea rows={2} value={seoDesc} onChange={(e) => setSeoDesc(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Palabras clave</Label>
+              <Label>SEO — Palabras clave</Label>
               <Input value={seoKeywords} onChange={(e) => setSeoKeywords(e.target.value)} placeholder="plumas, bolígrafos, escritura" />
             </div>
           </div>
@@ -307,8 +378,8 @@ export default function Categorias() {
             <Button type="button" variant="outline" onClick={() => setSeoDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={saveSeo} disabled={isSaving}>
-              Guardar
+            <Button onClick={saveSeo} disabled={isSaving || !newName.trim()}>
+              {editing ? 'Guardar' : 'Crear'}
             </Button>
           </DialogFooter>
         </DialogContent>
