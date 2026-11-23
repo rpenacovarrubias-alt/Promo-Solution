@@ -4,6 +4,7 @@ import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { WhatsAppButton } from '@/components/layout/WhatsAppButton'
+import { JulioChat } from '@/components/chat/JulioChat'
 import { CarritoProvider } from '@/components/quote/CarritoContext'
 import { AuthProvider } from '@/components/auth/AuthContext'
 
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="min-h-[calc(100vh-140px)]">{children}</main>
             <Footer />
             <WhatsAppButton />
+            <JulioChat />
           </CarritoProvider>
         </AuthProvider>
       </body>
