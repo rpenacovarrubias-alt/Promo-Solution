@@ -60,7 +60,7 @@ const RECS = [
   ['FITNESS', 'Fitness', 'Dumbbell', 'fitness, gym, yoga, pesas, mancuerna, ejercicio, shaker, cuerda para saltar, toalla deportiva'],
   ['FORMULA-1', 'Fórmula 1', 'Flag', 'formula 1, f1, racing, carreras'],
   ['HECHO-EN-MEXICO', 'Hecho En México', 'MapPin', 'hecho en mexico, talavera, artesanal, artesania'],
-  ['NAVIDAD', 'Navidad', 'TreePine', 'navidad, navideno, navidena, esfera, santa, nochebuena, reno'],
+  ['NAVIDAD', 'Navidad', 'TreePine', 'navidad, navideno, navidena, esfera decorativa, santa claus, nochebuena, reno'],
   ['LLAVEROS-CON-GRABADO-INCLUIDO', 'Llaveros Con Grabado Incluido', 'KeyRound', 'llavero'],
   ['RUNNERS', 'Runners', 'Footprints', 'runner, runners, running, correr, cangurera'],
   ['SALUD', 'Salud', 'HeartPulse', 'cubrebocas, sanitizante, gel antibacterial, termometro, botiquin, pastillero, antibacterial'],
