@@ -39,7 +39,8 @@ export function Header() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-4 h-16">
+        {/* En celular el buscador baja a su propia fila (order-last + basis-full) para no quedar diminuto */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 sm:flex-nowrap sm:h-16 sm:py-0">
 
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
@@ -48,7 +49,7 @@ export function Header() {
           </Link>
 
           {/* Search */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-xl">
+          <form onSubmit={handleSearch} className="order-last basis-full sm:order-none sm:basis-0 sm:flex-1 sm:max-w-xl">
             <div className="relative">
               <input
                 ref={searchRef}
@@ -56,7 +57,7 @@ export function Header() {
                 value={searchVal}
                 onChange={e => setSearchVal(e.target.value)}
                 placeholder="Buscar productos (termos, playeras, plumas...)"
-                className="w-full pl-4 pr-10 py-2 text-sm border border-gray-200 rounded-lg
+                className="w-full pl-4 pr-10 py-2 text-base sm:text-sm border border-gray-200 rounded-lg
                            focus:outline-none focus:ring-2 focus:ring-navy-700/30 focus:border-navy-700"
               />
               <button type="submit"
@@ -135,7 +136,7 @@ export function Header() {
 
           {/* Cart */}
           <Link href="/cotizar"
-            className="relative flex items-center gap-2 px-3 py-2 bg-navy-700 hover:bg-navy-800
+            className="relative ml-auto sm:ml-0 flex items-center gap-2 px-3 py-2 bg-navy-700 hover:bg-navy-800
                        text-white text-sm font-medium rounded-lg transition-colors">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

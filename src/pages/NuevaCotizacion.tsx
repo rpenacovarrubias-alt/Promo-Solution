@@ -140,7 +140,7 @@ function StepIndicator({ current }: { current: number }) {
               <span
                 className={cn(
                   'text-[11px] font-medium whitespace-nowrap',
-                  active ? 'text-primary' : 'text-muted-foreground',
+                  active ? 'text-primary' : 'hidden text-muted-foreground sm:block', // en celular solo el paso actual lleva texto
                 )}
               >
                 {label}
@@ -149,7 +149,7 @@ function StepIndicator({ current }: { current: number }) {
             {i < STEPS.length - 1 && (
               <div
                 className={cn(
-                  'mb-5 h-px w-16 sm:w-24 mx-2 transition-colors',
+                  'mb-5 h-px w-8 sm:w-24 mx-2 transition-colors',
                   done ? 'bg-primary' : 'bg-border',
                 )}
               />

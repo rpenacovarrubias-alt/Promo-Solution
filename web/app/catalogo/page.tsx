@@ -51,40 +51,57 @@ export default async function CatalogoPage({ searchParams }: Props) {
   // Nombre de la categoría activa
   const activeCategory = categories.find(c => c.id === searchParams.categoryId)
 
+  const categoryList = (
+    <ul className="space-y-0.5">
+      <li>
+        <Link href="/catalogo"
+          className={`block px-3 py-2.5 rounded-lg text-sm transition-colors ${
+            !searchParams.categoryId
+              ? 'bg-navy-700 text-white font-medium'
+              : 'text-gray-700 hover:bg-navy-50 hover:text-navy-700'
+          }`}>
+          Todos ({total.toLocaleString()})
+        </Link>
+      </li>
+      {categories.map(cat => (
+        <li key={cat.id}>
+          <Link
+            href={`/catalogo?categoryId=${cat.id}` + (searchParams.q ? `&q=${searchParams.q}` : '')}
+            className={`block px-3 py-2.5 rounded-lg text-sm transition-colors ${
+              searchParams.categoryId === cat.id
+                ? 'bg-navy-700 text-white font-medium'
+                : 'text-gray-700 hover:bg-navy-50 hover:text-navy-700'
+            }`}>
+            {cat.name}
+            <span className="ml-1 text-xs opacity-60">({cat.productCount})</span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  )
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col lg:flex-row gap-8">
 
-        {/* Sidebar filtros */}
+        {/* Sidebar filtros: en celular es un desplegable cerrado (los productos quedan arriba);
+            en pantallas grandes, la lista fija de siempre */}
         <aside className="w-full lg:w-56 flex-shrink-0">
-          <div className="sticky top-20">
+          <details className="lg:hidden rounded-xl border border-gray-200 bg-white group">
+            <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between px-4 py-2.5
+                                text-sm font-medium text-gray-800 [&::-webkit-details-marker]:hidden">
+              <span>Categorías: <span className="font-normal text-gray-500">{activeCategory?.name ?? 'Todas'}</span></span>
+              <svg className="w-4 h-4 text-gray-500 transition-transform duration-150 group-open:rotate-180"
+                   fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+            <div className="max-h-72 overflow-y-auto border-t border-gray-100 p-2">{categoryList}</div>
+          </details>
+
+          <div className="hidden lg:block sticky top-20">
             <h2 className="font-semibold text-gray-800 mb-3">Categorías</h2>
-            <ul className="space-y-0.5">
-              <li>
-                <Link href="/catalogo"
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    !searchParams.categoryId
-                      ? 'bg-navy-700 text-white font-medium'
-                      : 'text-gray-700 hover:bg-navy-50 hover:text-navy-700'
-                  }`}>
-                  Todos ({total.toLocaleString()})
-                </Link>
-              </li>
-              {categories.map(cat => (
-                <li key={cat.id}>
-                  <Link
-                    href={`/catalogo?categoryId=${cat.id}` + (searchParams.q ? `&q=${searchParams.q}` : '')}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      searchParams.categoryId === cat.id
-                        ? 'bg-navy-700 text-white font-medium'
-                        : 'text-gray-700 hover:bg-navy-50 hover:text-navy-700'
-                    }`}>
-                    {cat.name}
-                    <span className="ml-1 text-xs opacity-60">({cat.productCount})</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {categoryList}
           </div>
         </aside>
 

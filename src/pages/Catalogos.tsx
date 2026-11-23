@@ -167,7 +167,7 @@ export default function Catalogos() {
           .
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border bg-card">
+        <div className="overflow-x-auto rounded-xl border bg-card">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
@@ -224,7 +224,7 @@ export default function Catalogos() {
 
       <div>
         <h2 className="mb-3 font-semibold text-foreground">Historial de sincronización</h2>
-        <div className="overflow-hidden rounded-xl border bg-card">
+        <div className="overflow-x-auto rounded-xl border bg-card">
           {logs.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">Aún no hay sincronizaciones registradas.</p>
           ) : (
