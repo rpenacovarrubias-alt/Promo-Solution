@@ -37,10 +37,13 @@ async function upsertProducts(providerId, normalizedProducts) {
   for (const p of normalizedProducts) {
     const existing = await prisma.product.findUnique({
       where: { providerId_externalId: { providerId, externalId: p.externalId } },
-      include: { _count: { select: { images: true } } },
+      include: { _count: { select: { images: true } }, category: { select: { parentId: true } } },
     })
 
-    const categoryId = await resolveCategoryId(p.rawCategory)
+    // Si el producto ya está clasificado en una SUBCATEGORÍA (lib/subcategoryRules.js), la sincronización
+    // no lo regresa a la categoría cruda del proveedor.
+    const keepCategory = !!existing?.category?.parentId
+    const categoryId = keepCategory ? existing.categoryId : await resolveCategoryId(p.rawCategory)
     // Regla de calidad: sin precio o sin imagen => inactivo (admin y sitio público).
     const hasImage = existing ? existing._count.images > 0 || !!p.images?.length : !!p.images?.length
     const isActive = (p.isActive ?? true) && Number(p.basePrice) > 0 && hasImage

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import prisma from './_db.js'
+import { matches, norm } from '../lib/subcategoryRules.js'
 
 const router = Router()
 
@@ -80,6 +81,44 @@ router.post('/apply-quality-rule', async (req, res) => {
     })
   } catch (e) {
     console.error('[products apply-quality-rule]', e)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// Clasifica los productos en las subcategorías por las reglas de lib/subcategoryRules.js (nombre +
+// descripción). Solo cambia categoryId; no toca precios, imágenes ni estado. Lo que ninguna regla
+// reconoce se queda en su categoría. Idempotente. `?dry=1` solo cuenta, no escribe.
+// routes/sync.js respeta la subcategoría ya asignada.
+router.post('/classify', async (req, res) => {
+  const dry = req.query.dry === '1'
+  try {
+    const subs = await prisma.category.findMany({ where: { parentId: { not: null } }, select: { id: true, name: true } })
+    const subByName = new Map(subs.map(c => [norm(c.name), c]))
+    const products = await prisma.product.findMany({ select: { id: true, name: true, description: true, categoryId: true } })
+
+    const moves = new Map() // subcategoryId -> { name, ids }
+    const unknownSubs = new Set()
+    let alreadyThere = 0, stay = 0
+    for (const p of products) {
+      const hit = matches(p.name, p.description)[0]
+      if (!hit || hit.sub === null) { stay++; continue }
+      const sub = subByName.get(norm(hit.sub))
+      if (!sub) { unknownSubs.add(hit.sub); stay++; continue }
+      if (sub.id === p.categoryId) { alreadyThere++; continue }
+      if (!moves.has(sub.id)) moves.set(sub.id, { name: sub.name, ids: [] })
+      moves.get(sub.id).ids.push(p.id)
+    }
+
+    const bySubcategory = {}
+    let moved = 0
+    for (const [subId, { name, ids }] of moves) {
+      bySubcategory[name] = ids.length
+      moved += ids.length
+      if (!dry) await prisma.product.updateMany({ where: { id: { in: ids } }, data: { categoryId: subId } })
+    }
+    return res.json({ dryRun: dry, total: products.length, moved, alreadyThere, stay, unknownSubcategories: [...unknownSubs], bySubcategory })
+  } catch (e) {
+    console.error('[products classify]', e)
     return res.status(500).json({ error: 'Internal server error' })
   }
 })
